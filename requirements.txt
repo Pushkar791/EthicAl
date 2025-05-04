@@ -7,4 +7,8 @@ email-validator
 werkzeug
 jinja2
 sqlalchemy
-wtforms 
+wtforms
+gunicorn
+python-dotenv
+click
+itsdangerous 
