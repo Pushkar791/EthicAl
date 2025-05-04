@@ -3,10 +3,18 @@ from app.models import *  # Import all models for migration
 
 app = create_app()
 
-# Initialize database tables if needed
-with app.app_context():
-    db.create_all()
-    
-# This is the handler that Vercel will use
+# This is important for Vercel serverless
 def handler(request, **kwargs):
+    try:
+        # For first run only, try to create tables
+        # This may fail if the app is already created, which is fine
+        if request.get('path', '') == '/':
+            with app.app_context():
+                try:
+                    db.create_all()
+                except:
+                    pass  # Silently continue if tables already exist
+    except:
+        pass  # Fail silently if there are issues
+
     return app(request.environ, request.start_response) 
