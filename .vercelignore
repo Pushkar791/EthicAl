@@ -8,4 +8,8 @@ ENV/
 .git
 .gitignore
 .pytest_cache/
-instance/ 
+instance/
+!requirements-vercel.txt
+!vercel-build.py
+!wsgi.py
+!runtime.txt 
