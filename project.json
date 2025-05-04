@@ -1,6 +1,0 @@
-{
-  "buildCommand": "pip install -r requirements-vercel.txt && python -c \"print('Build completed')\"",
-  "outputDirectory": ".",
-  "installCommand": "echo 'Skipping automatic install'",
-  "framework": null
-} 
