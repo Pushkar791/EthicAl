@@ -1,0 +1,274 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-lg-10 mx-auto">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('learning_hub.index') }}">Learning Hub</a></li>
+                    <li class="breadcrumb-item active">Skill Assessment</li>
+                </ol>
+            </nav>
+            
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h1 class="h3 mb-0">AI Ethics & Governance Skill Assessment</h1>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info mb-4">
+                        <i class="bi bi-info-circle-fill me-2"></i>
+                        <strong>Welcome to the skill assessment!</strong> This assessment will help us recommend the right courses for your skill level and learning goals. There are no wrong answers - this is just to customize your learning journey.
+                    </div>
+                    
+                    <form id="skillAssessmentForm">
+                        <div class="progress mb-4">
+                            <div class="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div>
+                        </div>
+                        
+                        <!-- Section 1: Experience Level -->
+                        <div class="assessment-section" id="section1">
+                            <h5 class="card-title mb-3">Part 1: Your Experience Level</h5>
+                            
+                            <div class="mb-4">
+                                <label class="form-label">How would you describe your current knowledge of AI ethics?</label>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="radio" name="ethics_knowledge" id="ethics_beginner" value="beginner" required>
+                                    <label class="form-check-label" for="ethics_beginner">
+                                        <strong>Beginner:</strong> I'm just starting to learn about AI ethics
+                                    </label>
+                                </div>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="radio" name="ethics_knowledge" id="ethics_intermediate" value="intermediate">
+                                    <label class="form-check-label" for="ethics_intermediate">
+                                        <strong>Intermediate:</strong> I understand the basic principles but want to deepen my knowledge
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="ethics_knowledge" id="ethics_advanced" value="advanced">
+                                    <label class="form-check-label" for="ethics_advanced">
+                                        <strong>Advanced:</strong> I have extensive knowledge and am looking for specialized content
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <label class="form-label">What is your experience with AI governance frameworks?</label>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="radio" name="governance_experience" id="governance_none" value="none" required>
+                                    <label class="form-check-label" for="governance_none">
+                                        <strong>None:</strong> I have no experience with AI governance frameworks
+                                    </label>
+                                </div>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="radio" name="governance_experience" id="governance_some" value="some">
+                                    <label class="form-check-label" for="governance_some">
+                                        <strong>Some:</strong> I'm familiar with some frameworks but haven't implemented them
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="governance_experience" id="governance_extensive" value="extensive">
+                                    <label class="form-check-label" for="governance_extensive">
+                                        <strong>Extensive:</strong> I've worked with AI governance frameworks professionally
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="d-flex justify-content-end">
+                                <button type="button" class="btn btn-primary next-btn" data-next="section2">Next <i class="bi bi-arrow-right"></i></button>
+                            </div>
+                        </div>
+                        
+                        <!-- Section 2: Technical Background -->
+                        <div class="assessment-section" id="section2" style="display: none;">
+                            <h5 class="card-title mb-3">Part 2: Technical Background</h5>
+                            
+                            <div class="mb-4">
+                                <label class="form-label">What is your level of technical expertise in AI/ML?</label>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="radio" name="technical_expertise" id="technical_none" value="none" required>
+                                    <label class="form-check-label" for="technical_none">
+                                        <strong>Non-technical:</strong> I don't have a technical background
+                                    </label>
+                                </div>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="radio" name="technical_expertise" id="technical_basic" value="basic">
+                                    <label class="form-check-label" for="technical_basic">
+                                        <strong>Basic:</strong> I understand some concepts but don't code
+                                    </label>
+                                </div>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="radio" name="technical_expertise" id="technical_intermediate" value="intermediate">
+                                    <label class="form-check-label" for="technical_intermediate">
+                                        <strong>Intermediate:</strong> I have some coding experience and understand AI concepts
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="technical_expertise" id="technical_advanced" value="advanced">
+                                    <label class="form-check-label" for="technical_advanced">
+                                        <strong>Advanced:</strong> I'm a data scientist or ML engineer
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <label class="form-label">Which of these tasks have you performed? (Select all that apply)</label>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" name="tasks" id="task_train" value="train">
+                                    <label class="form-check-label" for="task_train">
+                                        Trained machine learning models
+                                    </label>
+                                </div>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" name="tasks" id="task_evaluate" value="evaluate">
+                                    <label class="form-check-label" for="task_evaluate">
+                                        Evaluated models for fairness or bias
+                                    </label>
+                                </div>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" name="tasks" id="task_deploy" value="deploy">
+                                    <label class="form-check-label" for="task_deploy">
+                                        Deployed AI systems in production
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="tasks" id="task_governance" value="governance">
+                                    <label class="form-check-label" for="task_governance">
+                                        Created AI governance documentation
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="d-flex justify-content-between">
+                                <button type="button" class="btn btn-outline-secondary prev-btn" data-prev="section1"><i class="bi bi-arrow-left"></i> Previous</button>
+                                <button type="button" class="btn btn-primary next-btn" data-next="section3">Next <i class="bi bi-arrow-right"></i></button>
+                            </div>
+                        </div>
+                        
+                        <!-- Section 3: Learning Goals -->
+                        <div class="assessment-section" id="section3" style="display: none;">
+                            <h5 class="card-title mb-3">Part 3: Your Learning Goals</h5>
+                            
+                            <div class="mb-4">
+                                <label class="form-label">What are your primary learning goals? (Select up to 3)</label>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" name="goals" id="goal_basics" value="basics">
+                                    <label class="form-check-label" for="goal_basics">
+                                        Learn the fundamentals of AI ethics
+                                    </label>
+                                </div>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" name="goals" id="goal_fairness" value="fairness">
+                                    <label class="form-check-label" for="goal_fairness">
+                                        Master techniques for fairness and bias detection
+                                    </label>
+                                </div>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" name="goals" id="goal_regulations" value="regulations">
+                                    <label class="form-check-label" for="goal_regulations">
+                                        Understand AI regulations and compliance
+                                    </label>
+                                </div>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" name="goals" id="goal_governance" value="governance">
+                                    <label class="form-check-label" for="goal_governance">
+                                        Implement governance frameworks for my organization
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="goals" id="goal_certification" value="certification">
+                                    <label class="form-check-label" for="goal_certification">
+                                        Earn a professional certification
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <label for="timeframe" class="form-label">What's your timeframe for achieving these goals?</label>
+                                <select class="form-select" id="timeframe" name="timeframe" required>
+                                    <option value="">Choose...</option>
+                                    <option value="1month">Within 1 month</option>
+                                    <option value="3months">Within 3 months</option>
+                                    <option value="6months">Within 6 months</option>
+                                    <option value="1year">Within 1 year</option>
+                                </select>
+                            </div>
+                            
+                            <div class="d-flex justify-content-between">
+                                <button type="button" class="btn btn-outline-secondary prev-btn" data-prev="section2"><i class="bi bi-arrow-left"></i> Previous</button>
+                                <button type="button" class="btn btn-primary next-btn" data-next="results">Submit <i class="bi bi-check-lg"></i></button>
+                            </div>
+                        </div>
+                        
+                        <!-- Results Section -->
+                        <div class="assessment-section" id="results" style="display: none;">
+                            <div class="text-center mb-4">
+                                <div class="mb-3">
+                                    <i class="bi bi-check-circle text-success" style="font-size: 3rem;"></i>
+                                </div>
+                                <h4>Assessment Complete!</h4>
+                                <p class="text-muted">Based on your responses, we've prepared personalized course recommendations for you.</p>
+                            </div>
+                            
+                            <div class="card mb-4">
+                                <div class="card-header bg-light">
+                                    <h5 class="card-title mb-0">Your Recommended Learning Path</h5>
+                                </div>
+                                <div class="card-body">
+                                    <ol class="list-group list-group-numbered mb-4">
+                                        <li class="list-group-item d-flex justify-content-between align-items-start">
+                                            <div class="ms-2 me-auto">
+                                                <div class="fw-bold">AI Ethics Fundamentals</div>
+                                                <p class="mb-1">Start with our foundational course on AI ethics</p>
+                                                <a href="{{ url_for('learning_hub.courses') }}" class="btn btn-sm btn-outline-primary mt-2">View Course</a>
+                                            </div>
+                                            <span class="badge bg-primary rounded-pill">Beginner</span>
+                                        </li>
+                                        <li class="list-group-item d-flex justify-content-between align-items-start">
+                                            <div class="ms-2 me-auto">
+                                                <div class="fw-bold">AI Governance for Professionals</div>
+                                                <p class="mb-1">Learn about implementing governance frameworks</p>
+                                                <a href="{{ url_for('learning_hub.courses') }}" class="btn btn-sm btn-outline-primary mt-2">View Course</a>
+                                            </div>
+                                            <span class="badge bg-warning rounded-pill">Intermediate</span>
+                                        </li>
+                                    </ol>
+                                    
+                                    <div class="d-grid gap-2">
+                                        <a href="{{ url_for('learning_hub.plan_schedule') }}" class="btn btn-primary">
+                                            <i class="bi bi-calendar3"></i> Create Learning Schedule
+                                        </a>
+                                        <a href="{{ url_for('learning_hub.courses') }}" class="btn btn-outline-primary">
+                                            <i class="bi bi-book"></i> Browse All Courses
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Progress tracking
+        const totalSections = 3;
+        const progressBar = document.querySelector('.progress-bar');
+        
+        // Initialize progress
+        let currentProgress = 0;
+        progressBar.style.width = currentProgress + '%';
+        progressBar.setAttribute('aria-valuenow', currentProgress);
+        progressBar.textContent = currentProgress + '%';
+        
+        // Note: The actual navigation is now handled by the gene-loader.js
+        // This script only tracks the active section
+        console.log('Skill assessment initialized with gene loader transitions');
+    });
+</script>
+{% endblock %} 

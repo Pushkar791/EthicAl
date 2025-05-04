@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-lg-10 mx-auto">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('governance.index') }}">Governance</a></li>
+                    <li class="breadcrumb-item"><a href="{{ url_for('governance.ai_models') }}">AI Models</a></li>
+                    <li class="breadcrumb-item"><a href="{{ url_for('governance.ai_model', model_id=model.id) }}">{{ model.name }}</a></li>
+                    <li class="breadcrumb-item active">Update</li>
+                </ol>
+            </nav>
+            
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h1 class="h3 mb-0">Update AI Model</h1>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted mb-4">Update the details of this AI model. Any changes will be logged in the audit trail.</p>
+                    
+                    <form method="post" action="{{ url_for('governance.update_ai_model', model_id=model.id) }}">
+                        <div class="row mb-4">
+                            <div class="col-md-6 mb-3">
+                                <label for="name" class="form-label">Model Name <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="name" name="name" value="{{ model.name }}" required>
+                                <div class="form-text">A descriptive name for your AI model.</div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="version" class="form-label">Version <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="version" name="version" value="{{ model.version }}" required>
+                                <div class="form-text">Version of the model (e.g. 1.0, 2.1.3)</div>
+                            </div>
+                            
+                            <div class="col-12 mb-3">
+                                <label for="description" class="form-label">Description</label>
+                                <textarea class="form-control" id="description" name="description" rows="3">{{ model.description }}</textarea>
+                                <div class="form-text">Describe the purpose of the model and its intended use case.</div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="model_type" class="form-label">Model Type <span class="text-danger">*</span></label>
+                                <select class="form-select" id="model_type" name="model_type" required>
+                                    <option value="classification" {% if model.model_type == 'classification' %}selected{% endif %}>Classification</option>
+                                    <option value="regression" {% if model.model_type == 'regression' %}selected{% endif %}>Regression</option>
+                                    <option value="clustering" {% if model.model_type == 'clustering' %}selected{% endif %}>Clustering</option>
+                                    <option value="nlp" {% if model.model_type == 'nlp' %}selected{% endif %}>Natural Language Processing</option>
+                                    <option value="vision" {% if model.model_type == 'vision' %}selected{% endif %}>Computer Vision</option>
+                                    <option value="other" {% if model.model_type == 'other' %}selected{% endif %}>Other</option>
+                                </select>
+                                <div class="form-text">Type of AI/ML model.</div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="risk_level" class="form-label">Risk Level <span class="text-danger">*</span></label>
+                                <select class="form-select" id="risk_level" name="risk_level" required>
+                                    <option value="low" {% if model.risk_level == 'low' %}selected{% endif %}>Low</option>
+                                    <option value="medium" {% if model.risk_level == 'medium' %}selected{% endif %}>Medium</option>
+                                    <option value="high" {% if model.risk_level == 'high' %}selected{% endif %}>High</option>
+                                </select>
+                                <div class="form-text">Assessed risk level of the model.</div>
+                            </div>
+                            
+                            <div class="col-12 mb-3">
+                                <label for="api_endpoint" class="form-label">API Endpoint</label>
+                                <input type="text" class="form-control" id="api_endpoint" name="api_endpoint" value="{{ model.api_endpoint }}">
+                                <div class="form-text">API endpoint for the model, if applicable.</div>
+                            </div>
+                            
+                            {% if teams %}
+                            <div class="col-md-6 mb-3">
+                                <label for="team_id" class="form-label">Team</label>
+                                <select class="form-select" id="team_id" name="team_id">
+                                    <option value="">None (Personal Model)</option>
+                                    {% for team in teams %}
+                                    <option value="{{ team.id }}" {% if model.team_id == team.id %}selected{% endif %}>{{ team.name }}</option>
+                                    {% endfor %}
+                                </select>
+                                <div class="form-text">Team that owns this model (if applicable).</div>
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <hr class="mb-4">
+                        
+                        <h5 class="mb-3">Audit Information</h5>
+                        <div class="row mb-4">
+                            <div class="col-md-6 mb-3">
+                                <label for="created_at" class="form-label">Created</label>
+                                <input type="text" class="form-control" id="created_at" value="{{ model.created_at.strftime('%Y-%m-%d %H:%M') }}" disabled readonly>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="updated_at" class="form-label">Last Updated</label>
+                                <input type="text" class="form-control" id="updated_at" value="{{ model.updated_at.strftime('%Y-%m-%d %H:%M') if model.updated_at else 'Never' }}" disabled readonly>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="owner" class="form-label">Owner</label>
+                                <input type="text" class="form-control" id="owner" value="{{ model.owner.username if model.owner else 'Unknown' }}" disabled readonly>
+                            </div>
+                        </div>
+                        
+                        <h5 class="mb-3">Update Reason</h5>
+                        <div class="row mb-4">
+                            <div class="col-12 mb-3">
+                                <label for="update_reason" class="form-label">Reason for Update <span class="text-danger">*</span></label>
+                                <textarea class="form-control" id="update_reason" name="update_reason" rows="2" required></textarea>
+                                <div class="form-text">Provide a reason for this update (will be included in the audit log).</div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ url_for('governance.ai_model', model_id=model.id) }}" class="btn btn-outline-secondary">
+                                <i class="bi bi-x-circle"></i> Cancel
+                            </a>
+                            <div>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-save"></i> Save Changes
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Form validation logic
+        const form = document.querySelector('form');
+        
+        form.addEventListener('submit', function(event) {
+            // Custom validation
+            const modelName = document.getElementById('name').value.trim();
+            const modelVersion = document.getElementById('version').value.trim();
+            const updateReason = document.getElementById('update_reason').value.trim();
+            
+            if (!modelName || !modelVersion || !updateReason) {
+                event.preventDefault();
+                alert('Please fill in all required fields');
+            }
+        });
+        
+        // Update risk level warning
+        const riskLevelSelect = document.getElementById('risk_level');
+        const originalRiskLevel = '{{ model.risk_level }}';
+        
+        riskLevelSelect.addEventListener('change', function() {
+            const selectedRisk = this.value;
+            
+            // Show confirmation if changing to a higher risk level
+            if (selectedRisk === 'high' && originalRiskLevel !== 'high') {
+                const confirmHighRisk = confirm('Changing to a high risk level requires additional documentation and governance. Are you sure you want to proceed?');
+                
+                if (!confirmHighRisk) {
+                    this.value = originalRiskLevel;
+                }
+            }
+        });
+    });
+</script>
+{% endblock %} 

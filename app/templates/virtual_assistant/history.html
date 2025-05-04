@@ -1,0 +1,520 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1 class="h2 mb-4">Conversation History</h1>
+
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center bg-light">
+                <h5 class="m-0 font-weight-bold"><i class="bi bi-clock-history me-2"></i>Your Conversation History</h5>
+                <div>
+                    <a href="{{ url_for('virtual_assistant.export_data') }}" class="btn btn-sm btn-outline-secondary me-2">
+                        <i class="bi bi-download me-1"></i> Export Data
+                    </a>
+                    <a href="{{ url_for('virtual_assistant.chat') }}" class="btn btn-sm btn-primary me-2">
+                        <i class="bi bi-chat-dots me-1"></i> New Chat
+                    </a>
+                    {% if interactions.items %}
+                    <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteHistoryModal">
+                        <i class="bi bi-trash me-1"></i> Clear History
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="card-body">
+                {% if interactions.items %}
+                    <div class="table-responsive">
+                        <table class="table table-hover conversation-table">
+                            <thead class="table-light">
+                                <tr>
+                                    <th style="width: 18%">Date & Time</th>
+                                    <th style="width: 28%">Query</th>
+                                    <th style="width: 40%">Response</th>
+                                    <th style="width: 14%">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for interaction in interactions.items %}
+                                    <tr>
+                                        <td class="text-muted">{{ interaction.timestamp.strftime('%b %d, %Y %H:%M') }}</td>
+                                        <td>
+                                            <div class="text-truncate" style="max-width: 250px;">
+                                                {{ interaction.query }}
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="text-truncate" style="max-width: 350px;">
+                                                {{ interaction.response }}
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="btn-group">
+                                                <button class="btn btn-sm btn-outline-primary view-details-btn" 
+                                                       data-query="{{ interaction.query }}" 
+                                                       data-response="{{ interaction.response|replace('\n', '<br>')|replace('• ', '<li>')|replace('\n• ', '</li><li>')|replace(':\n', ':<ul>')|replace('\n\n', '</ul><p>')|replace('\n', '</p><p>') }}"
+                                                       data-time="{{ interaction.timestamp.strftime('%b %d, %Y %H:%M') }}"
+                                                       data-consent="{{ 'Yes' if interaction.consent_given else 'No' }}"
+                                                       data-id="{{ interaction.id }}"
+                                                       data-bs-toggle="modal" 
+                                                       data-bs-target="#viewDetailsModal">
+                                                    <i class="bi bi-eye"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-danger delete-item-btn"
+                                                       data-id="{{ interaction.id }}"
+                                                       data-bs-toggle="modal"
+                                                       data-bs-target="#deleteItemModal">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Pagination -->
+                    {% if interactions.pages > 1 %}
+                    <nav aria-label="History navigation" class="mt-4">
+                        <ul class="pagination justify-content-center">
+                            {% if interactions.has_prev %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('virtual_assistant.history', page=interactions.prev_num) }}">Previous</a>
+                            </li>
+                            {% else %}
+                            <li class="page-item disabled">
+                                <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Previous</a>
+                            </li>
+                            {% endif %}
+                            
+                            {% for page_num in interactions.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
+                                {% if page_num %}
+                                    {% if page_num == interactions.page %}
+                                    <li class="page-item active">
+                                        <a class="page-link" href="{{ url_for('virtual_assistant.history', page=page_num) }}">{{ page_num }}</a>
+                                    </li>
+                                    {% else %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="{{ url_for('virtual_assistant.history', page=page_num) }}">{{ page_num }}</a>
+                                    </li>
+                                    {% endif %}
+                                {% else %}
+                                    <li class="page-item disabled">
+                                        <a class="page-link" href="#">…</a>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+                            
+                            {% if interactions.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('virtual_assistant.history', page=interactions.next_num) }}">Next</a>
+                            </li>
+                            {% else %}
+                            <li class="page-item disabled">
+                                <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Next</a>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                    {% endif %}
+                {% else %}
+                    <div class="text-center py-5">
+                        <div class="mb-3">
+                            <i class="bi bi-chat-dots text-muted fs-1"></i>
+                        </div>
+                        <h5>No Conversation History</h5>
+                        <p class="text-muted">You haven't had any conversations with the assistant yet.</p>
+                        <a href="{{ url_for('virtual_assistant.chat') }}" class="btn btn-primary mt-2">Start Chatting</a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card border-primary border-opacity-25">
+            <div class="card-header bg-primary bg-opacity-10">
+                <h5 class="m-0 font-weight-bold"><i class="bi bi-shield-lock me-2"></i>Privacy Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6><i class="bi bi-info-circle me-2"></i>How We Use Your Conversation Data</h6>
+                        <p class="small">
+                            Your conversations with the EthicAI assistant are stored only with your explicit consent.
+                            This data helps us provide personalized assistance and improve the assistant's ability to
+                            address common questions about AI ethics and governance.
+                        </p>
+                        <h6><i class="bi bi-person-lock me-2"></i>Your Data Rights</h6>
+                        <p class="small">
+                            Under data protection regulations like GDPR, you have the right to:
+                            <ul class="small">
+                                <li>Access your conversation data (via the Export Data button)</li>
+                                <li>Delete specific conversations or your entire history</li>
+                                <li>Withdraw consent for data storage at any time</li>
+                                <li>Request information about how your data is processed</li>
+                            </ul>
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6><i class="bi bi-sliders me-2"></i>Privacy Controls</h6>
+                        <div class="form-check form-switch mb-3">
+                            <input class="form-check-input" type="checkbox" id="consentStorage" checked>
+                            <label class="form-check-label" for="consentStorage">
+                                <strong>Data Storage Consent</strong>
+                                <div class="small text-muted">Allow your conversations to be stored</div>
+                            </label>
+                        </div>
+                        <div class="form-check form-switch mb-3">
+                            <input class="form-check-input" type="checkbox" id="consentPII" checked>
+                            <label class="form-check-label" for="consentPII">
+                                <strong>PII Protection</strong>
+                                <div class="small text-muted">Automatically redact personal information</div>
+                            </label>
+                        </div>
+                        <div class="form-check form-switch mb-3">
+                            <input class="form-check-input" type="checkbox" id="consentPersonalization">
+                            <label class="form-check-label" for="consentPersonalization">
+                                <strong>Personalization</strong>
+                                <div class="small text-muted">Enable personalized responses</div>
+                            </label>
+                        </div>
+                        
+                        <div class="alert alert-info small mb-0">
+                            <i class="bi bi-lightbulb me-2"></i>
+                            <strong>Data Minimization:</strong> Our assistant is designed with privacy-by-design principles and only collects the minimum data necessary to provide the service.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- View Details Modal -->
+<div class="modal fade" id="viewDetailsModal" tabindex="-1" aria-labelledby="viewDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-light">
+                <h5 class="modal-title" id="viewDetailsModalLabel"><i class="bi bi-chat-dots me-2"></i>Conversation Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="d-flex justify-content-between mb-3">
+                    <div class="interaction-time text-muted">
+                        <i class="bi bi-clock me-1"></i> <span id="detailTime"></span>
+                    </div>
+                    <div class="consent-info">
+                        <span class="badge bg-info" id="consentBadge"></span>
+                    </div>
+                </div>
+                <div class="chat-container p-3 mb-4">
+                    <div class="chat-message chat-user">
+                        <div class="chat-bubble">
+                            <div class="chat-content ms-auto">
+                                <div class="chat-header">
+                                    <span class="chat-time" id="detailTimeShort"></span>
+                                    <span class="chat-name">You</span>
+                                </div>
+                                <div class="chat-text">
+                                    <p id="detailQuery"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="chat-message chat-assistant">
+                        <div class="chat-bubble">
+                            <div class="chat-avatar">
+                                <i class="bi bi-robot"></i>
+                            </div>
+                            <div class="chat-content">
+                                <div class="chat-header">
+                                    <span class="chat-name">EthicAI Assistant</span>
+                                    <span class="chat-time" id="detailTimeShort2"></span>
+                                </div>
+                                <div class="chat-text" id="detailResponse">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <form action="{{ url_for('virtual_assistant.delete_history') }}" method="post" id="deleteFromModalForm">
+                    <input type="hidden" name="interaction_id" id="deleteModalId" value="">
+                    <button type="submit" class="btn btn-outline-danger me-auto">
+                        <i class="bi bi-trash me-1"></i> Delete
+                    </button>
+                </form>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <a href="{{ url_for('virtual_assistant.chat') }}" class="btn btn-primary">Ask Follow-up</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Item Modal -->
+<div class="modal fade" id="deleteItemModal" tabindex="-1" aria-labelledby="deleteItemModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="deleteItemModalLabel"><i class="bi bi-trash me-2"></i>Delete Conversation</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete this conversation?</p>
+                <p class="text-danger"><strong>This action cannot be undone.</strong></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form action="{{ url_for('virtual_assistant.delete_history') }}" method="post">
+                    <input type="hidden" name="interaction_id" id="deleteItemId" value="">
+                    <button type="submit" class="btn btn-danger">Delete Conversation</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete History Confirmation Modal -->
+<div class="modal fade" id="deleteHistoryModal" tabindex="-1" aria-labelledby="deleteHistoryModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="deleteHistoryModalLabel"><i class="bi bi-exclamation-triangle me-2"></i>Confirm Deletion</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning">
+                    <i class="bi bi-exclamation-circle me-2"></i>
+                    You are about to delete your entire conversation history.
+                </div>
+                <p>This will permanently remove all conversations you've had with the assistant. This data cannot be recovered once deleted.</p>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="confirmDeleteAll">
+                    <label class="form-check-label" for="confirmDeleteAll">
+                        I understand this action cannot be undone.
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form action="{{ url_for('virtual_assistant.delete_history') }}" method="post">
+                    <button type="submit" class="btn btn-danger" id="deleteAllBtn" disabled>Delete All History</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block styles %}
+<style>
+    .conversation-table tr {
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+    
+    .conversation-table tr:hover {
+        background-color: rgba(13, 110, 253, 0.05);
+    }
+    
+    .chat-container {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        background-color: #f8f9fa;
+        border-radius: 6px;
+    }
+    
+    .chat-message {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .chat-bubble {
+        display: flex;
+        max-width: 85%;
+    }
+    
+    .chat-user .chat-bubble {
+        align-self: flex-end;
+    }
+    
+    .chat-content {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .chat-assistant .chat-content {
+        background-color: #ffffff;
+        border: 1px solid #e9ecef;
+        border-radius: 12px;
+        padding: 10px 15px;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    }
+    
+    .chat-user .chat-content {
+        background-color: #0d6efd;
+        color: white;
+        border-radius: 12px;
+        padding: 10px 15px;
+        align-self: flex-end;
+    }
+    
+    .chat-avatar {
+        width: 32px;
+        height: 32px;
+        background-color: #0d6efd;
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 8px;
+    }
+    
+    .chat-header {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.75rem;
+        margin-bottom: 5px;
+    }
+    
+    .chat-user .chat-header {
+        color: rgba(255,255,255,0.8);
+    }
+    
+    .chat-assistant .chat-header {
+        color: #6c757d;
+    }
+    
+    .chat-name {
+        font-weight: bold;
+    }
+    
+    .chat-time {
+        font-weight: normal;
+    }
+    
+    .chat-text p {
+        margin-bottom: 8px;
+    }
+    
+    .chat-text ul {
+        margin-bottom: 8px;
+        padding-left: 20px;
+    }
+    
+    .chat-user .chat-text p {
+        margin-bottom: 0;
+    }
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Handle details modal
+        const viewDetailsButtons = document.querySelectorAll('.view-details-btn');
+        viewDetailsButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const query = this.getAttribute('data-query');
+                const response = this.getAttribute('data-response');
+                const time = this.getAttribute('data-time');
+                const consent = this.getAttribute('data-consent');
+                const id = this.getAttribute('data-id');
+                
+                document.getElementById('detailQuery').textContent = query;
+                document.getElementById('detailResponse').innerHTML = response;
+                document.getElementById('detailTime').textContent = time;
+                document.getElementById('detailTimeShort').textContent = time.split(' ')[3]; // Just show the time part
+                document.getElementById('detailTimeShort2').textContent = time.split(' ')[3]; // Same for response
+                document.getElementById('deleteModalId').value = id;
+                
+                const consentBadge = document.getElementById('consentBadge');
+                if (consent === 'Yes') {
+                    consentBadge.textContent = 'Consent: Granted';
+                    consentBadge.classList.remove('bg-warning');
+                    consentBadge.classList.add('bg-success');
+                } else {
+                    consentBadge.textContent = 'Consent: Restricted';
+                    consentBadge.classList.remove('bg-success');
+                    consentBadge.classList.add('bg-warning');
+                }
+            });
+        });
+        
+        // Handle delete item modal
+        const deleteItemButtons = document.querySelectorAll('.delete-item-btn');
+        deleteItemButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const id = this.getAttribute('data-id');
+                document.getElementById('deleteItemId').value = id;
+            });
+        });
+        
+        // Click anywhere in row to open details
+        const tableRows = document.querySelectorAll('.conversation-table tbody tr');
+        tableRows.forEach(row => {
+            row.addEventListener('click', function(e) {
+                // Only trigger if not clicking on a button
+                if (!e.target.closest('button')) {
+                    const detailsBtn = this.querySelector('.view-details-btn');
+                    if (detailsBtn) {
+                        detailsBtn.click();
+                    }
+                }
+            });
+        });
+        
+        // Enable/disable delete all button
+        const confirmDeleteAll = document.getElementById('confirmDeleteAll');
+        const deleteAllBtn = document.getElementById('deleteAllBtn');
+        
+        if (confirmDeleteAll && deleteAllBtn) {
+            confirmDeleteAll.addEventListener('change', function() {
+                deleteAllBtn.disabled = !this.checked;
+            });
+        }
+        
+        // Persist privacy settings to local storage
+        const consentStorage = document.getElementById('consentStorage');
+        const consentPII = document.getElementById('consentPII');
+        const consentPersonalization = document.getElementById('consentPersonalization');
+        
+        // Only proceed if elements exist
+        if (consentStorage && consentPII && consentPersonalization) {
+            // Load settings from localStorage
+            if (localStorage.getItem('consentStorage') === 'false') {
+                consentStorage.checked = false;
+            }
+            
+            if (localStorage.getItem('consentPII') === 'false') {
+                consentPII.checked = false;
+            }
+            
+            if (localStorage.getItem('consentPersonalization') === 'true') {
+                consentPersonalization.checked = true;
+            }
+            
+            // Save settings to localStorage when changed
+            consentStorage.addEventListener('change', function() {
+                localStorage.setItem('consentStorage', this.checked);
+            });
+            
+            consentPII.addEventListener('change', function() {
+                localStorage.setItem('consentPII', this.checked);
+            });
+            
+            consentPersonalization.addEventListener('change', function() {
+                localStorage.setItem('consentPersonalization', this.checked);
+            });
+        }
+    });
+</script>
+{% endblock %} 

@@ -1,0 +1,359 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-lg-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Virtual Ethics Assistant</h5>
+                    <div class="d-flex gap-3 align-items-center">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="voiceFeedbackSwitch" onchange="toggleVoiceFeedback(this.checked)">
+                            <label class="form-check-label" for="voiceFeedbackSwitch">
+                                <i class="bi bi-volume-up"></i> Voice Feedback
+                            </label>
+                </div>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="consentSwitch" onchange="toggleConsentStatus(this.checked)" checked>
+                            <label class="form-check-label" for="consentSwitch">
+                                Data Storage <span id="consent-status" class="text-success">Enabled</span>
+                            </label>
+                        </div>
+                    </div>
+                                </div>
+                <div class="card-body chat-container">
+                    <div id="chat-history" class="mb-4">
+                        <div class="system-message mb-3">
+                            <div class="message-content alert alert-info">
+                                Hello! I'm your AI Ethics Assistant. How can I help you with ethical AI development today?
+                        </div>
+                    </div>
+                    
+                        {% if query and response %}
+                        <div class="user-message mb-3">
+                            <div class="message-content alert alert-secondary">
+                                {{ query }}
+                            </div>
+                                </div>
+                        <div class="system-message mb-3">
+                            <div class="message-content alert alert-info">
+                                {{ response }}
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        <div id="chat-response">
+                            <!-- AJAX response will appear here -->
+                        </div>
+                </div>
+                
+                    <form id="chat-form" action="{{ url_for('virtual_assistant.chat') }}" method="post">
+                    <div class="input-group">
+                            <input type="text" id="query" name="query" class="form-control" placeholder="Type your question about AI ethics..." required>
+                            <input type="hidden" id="consent_given" name="consent_given" value="true">
+                        <button class="btn btn-primary" type="submit">
+                                <i class="bi bi-send"></i> Send
+                        </button>
+                    </div>
+                    </form>
+                </div>
+                <div class="card-footer">
+                    <small class="text-muted">
+                        <i class="bi bi-shield-lock"></i> AI Ethics Assistant uses minimal data processing and prioritizes your privacy.
+                        </small>
+                    </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mb-4">
+        <div class="col-lg-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Suggested Topics</h5>
+            </div>
+            <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <button class="btn btn-outline-primary w-100 suggestion-btn" data-query="What are the key principles of ethical AI?">
+                                Ethical AI Principles
+                            </button>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <button class="btn btn-outline-primary w-100 suggestion-btn" data-query="How can I detect bias in my models?">
+                                Bias Detection
+                            </button>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <button class="btn btn-outline-primary w-100 suggestion-btn" data-query="What privacy regulations apply to AI systems?">
+                                Privacy Regulations
+                            </button>
+                    </div>
+                        <div class="col-md-4 mb-3">
+                            <button class="btn btn-outline-primary w-100 suggestion-btn" data-query="How do I make my AI models more explainable?">
+                                Explainable AI
+                            </button>
+                    </div>
+                        <div class="col-md-4 mb-3">
+                            <button class="btn btn-outline-primary w-100 suggestion-btn" data-query="What training courses do you recommend for ethical AI?">
+                                Training Courses
+                            </button>
+                    </div>
+                        <div class="col-md-4 mb-3">
+                            <button class="btn btn-outline-primary w-100 suggestion-btn" data-query="How should I document my AI models for compliance?">
+                                Documentation
+                        </button>
+                    </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const consentSwitch = document.getElementById('consentSwitch');
+        const consentInput = document.getElementById('consent_given');
+        const consentStatus = document.getElementById('consent-status');
+        const voiceFeedbackSwitch = document.getElementById('voiceFeedbackSwitch');
+        const chatForm = document.getElementById('chat-form');
+        const queryInput = document.getElementById('query');
+        const chatResponse = document.getElementById('chat-response');
+        const chatHistory = document.getElementById('chat-history');
+        
+        // Voice synthesis variables
+        let voiceFeedbackEnabled = false;
+        let speechSynthesis = window.speechSynthesis;
+        let speechVoice = null;
+        
+        // Initialize available voices
+        function initVoices() {
+            // Get available voices
+            const voices = speechSynthesis.getVoices();
+            if (voices.length > 0) {
+                // Prefer female English voice if available
+                speechVoice = voices.find(voice => voice.lang.includes('en') && voice.name.includes('Female')) || 
+                             voices.find(voice => voice.lang.includes('en')) || 
+                             voices[0];
+            }
+        }
+        
+        // Initialize voices (needed for some browsers)
+        if (speechSynthesis) {
+            if (speechSynthesis.onvoiceschanged !== undefined) {
+                speechSynthesis.onvoiceschanged = initVoices;
+            }
+            initVoices();
+        }
+        
+        // Speak text using speech synthesis
+        function speakText(text) {
+            if (!voiceFeedbackEnabled || !speechSynthesis || !text) return;
+            
+            // Stop any current speech
+            speechSynthesis.cancel();
+            
+            // Clean text for speech (remove markdown, bullet points, etc.)
+            const cleanText = text
+                .replace(/\n•/g, '. ') // Convert bullet points to sentences
+                .replace(/\n/g, ' ')    // Remove line breaks
+                .replace(/\*\*/g, '')   // Remove bold markdown
+                .replace(/\*/g, '')     // Remove italic markdown
+                .replace(/#+\s/g, '')   // Remove heading markers
+                .replace(/\s+/g, ' ');  // Remove extra spaces
+            
+            // Create utterance
+            const utterance = new SpeechSynthesisUtterance(cleanText);
+            
+            // Set voice if available
+            if (speechVoice) {
+                utterance.voice = speechVoice;
+            }
+            
+            // Set other properties
+            utterance.rate = 1.0;
+            utterance.pitch = 1.0;
+            utterance.volume = 1.0;
+            
+            // Speak
+            speechSynthesis.speak(utterance);
+        }
+        
+        // Toggle voice feedback
+        window.toggleVoiceFeedback = function(enabled) {
+            voiceFeedbackEnabled = enabled;
+            
+            // Stop any current speech if disabled
+            if (!enabled && speechSynthesis) {
+                speechSynthesis.cancel();
+            }
+            
+            // Save preference in localStorage
+            localStorage.setItem('voiceFeedbackEnabled', enabled.toString());
+        };
+        
+        // Load saved voice feedback preference
+        if (voiceFeedbackSwitch) {
+            const savedVoiceFeedback = localStorage.getItem('voiceFeedbackEnabled');
+            if (savedVoiceFeedback) {
+                voiceFeedbackEnabled = savedVoiceFeedback === 'true';
+                voiceFeedbackSwitch.checked = voiceFeedbackEnabled;
+            }
+        }
+        
+        // Toggle consent status display
+        function toggleConsentStatus(enabled) {
+            if (consentStatus) {
+                if (enabled) {
+                    consentStatus.textContent = 'Enabled';
+                    consentStatus.className = 'text-success';
+                } else {
+                    consentStatus.textContent = 'Disabled';
+                    consentStatus.className = 'text-danger';
+                }
+            }
+            
+            // Update hidden input
+            if (consentInput) {
+                consentInput.value = enabled ? 'true' : 'false';
+            }
+        }
+        
+        // Initialize consent switch handler
+        if (consentSwitch) {
+            consentSwitch.addEventListener('change', function() {
+                toggleConsentStatus(this.checked);
+            });
+        }
+        
+        // Handle suggestion buttons
+        const suggestionButtons = document.querySelectorAll('.suggestion-btn');
+        suggestionButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const query = this.getAttribute('data-query');
+                if (queryInput && query) {
+                    queryInput.value = query;
+                    setTimeout(() => queryInput.focus(), 0);
+                }
+            });
+        });
+        
+        // Handle chat form submission via AJAX
+        if (chatForm) {
+            chatForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const formData = new FormData(chatForm);
+                const query = queryInput.value.trim();
+                
+                if (!query) return;
+                
+                // Add user message to chat history
+                const userMessageHTML = `
+                    <div class="user-message mb-3">
+                        <div class="message-content alert alert-secondary">
+                            ${query}
+                        </div>
+                    </div>
+                `;
+                chatHistory.insertAdjacentHTML('beforeend', userMessageHTML);
+                
+                // Show loading indicator
+                chatResponse.innerHTML = `
+                    <div class="system-message mb-3">
+                        <div class="message-content alert alert-info d-flex align-items-center">
+                            <div class="spinner-border spinner-border-sm me-2" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            Thinking...
+                        </div>
+                    </div>
+                `;
+                
+                // Scroll to bottom of chat
+                chatHistory.scrollTop = chatHistory.scrollHeight;
+                
+                // Submit form via AJAX
+                fetch(chatForm.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Remove loading indicator
+                    chatResponse.innerHTML = '';
+                    
+                    // Add assistant response to chat history
+                    const assistantMessageHTML = `
+                        <div class="system-message mb-3">
+                            <div class="message-content alert alert-info">
+                                ${data.response}
+                            </div>
+                        </div>
+                    `;
+                    chatHistory.insertAdjacentHTML('beforeend', assistantMessageHTML);
+                    
+                    // Speak the response if voice feedback is enabled
+                    speakText(data.response);
+                    
+                    // Scroll to bottom of chat
+                    chatHistory.scrollTop = chatHistory.scrollHeight;
+                    
+                    // Clear input
+                    queryInput.value = '';
+                    queryInput.focus();
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    chatResponse.innerHTML = `
+                        <div class="system-message mb-3">
+                            <div class="message-content alert alert-danger">
+                                Sorry, there was an error processing your request. Please try again.
+                            </div>
+                        </div>
+                    `;
+                });
+            });
+        }
+    });
+    
+    function toggleConsentStatus(enabled) {
+        const consentStatus = document.getElementById('consent-status');
+        const consentInput = document.getElementById('consent_given');
+        
+        if (consentStatus) {
+            if (enabled) {
+                consentStatus.textContent = 'Enabled';
+                consentStatus.className = 'text-success';
+        } else {
+                consentStatus.textContent = 'Disabled';
+                consentStatus.className = 'text-danger';
+            }
+        }
+        
+        if (consentInput) {
+            consentInput.value = enabled ? 'true' : 'false';
+        }
+    }
+    
+    function toggleVoiceFeedback(enabled) {
+        // This function is defined in the DOMContentLoaded scope,
+        // but we need it to be accessible from the onclick handler
+        if (window.toggleVoiceFeedback) {
+            window.toggleVoiceFeedback(enabled);
+        }
+    }
+</script>
+{% endblock %} 

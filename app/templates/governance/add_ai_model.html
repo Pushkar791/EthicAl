@@ -1,0 +1,224 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-lg-10 mx-auto">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('governance.index') }}">Governance</a></li>
+                    <li class="breadcrumb-item"><a href="{{ url_for('governance.ai_models') }}">AI Models</a></li>
+                    <li class="breadcrumb-item active">Add AI Model</li>
+                </ol>
+            </nav>
+            
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h1 class="h3 mb-0">Add AI Model</h1>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted mb-4">Register a new AI model for governance tracking, compliance monitoring, and bias analysis.</p>
+                    
+                    <form method="post" action="{{ url_for('governance.add_ai_model') }}">
+                        <div class="row mb-4">
+                            <div class="col-md-6 mb-3">
+                                <label for="name" class="form-label">Model Name <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="name" name="name" required>
+                                <div class="form-text">A descriptive name for your AI model.</div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="version" class="form-label">Version <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="version" name="version" placeholder="1.0" required>
+                                <div class="form-text">Version of the model (e.g. 1.0, 2.1.3)</div>
+                            </div>
+                            
+                            <div class="col-12 mb-3">
+                                <label for="description" class="form-label">Description</label>
+                                <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+                                <div class="form-text">Describe the purpose of the model and its intended use case.</div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="model_type" class="form-label">Model Type <span class="text-danger">*</span></label>
+                                <select class="form-select" id="model_type" name="model_type" required>
+                                    <option value="" selected disabled>Select model type</option>
+                                    <option value="classification">Classification</option>
+                                    <option value="regression">Regression</option>
+                                    <option value="clustering">Clustering</option>
+                                    <option value="nlp">Natural Language Processing</option>
+                                    <option value="vision">Computer Vision</option>
+                                    <option value="other">Other</option>
+                                </select>
+                                <div class="form-text">Type of AI/ML model.</div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="risk_level" class="form-label">Risk Level <span class="text-danger">*</span></label>
+                                <select class="form-select" id="risk_level" name="risk_level" required>
+                                    <option value="" selected disabled>Select risk level</option>
+                                    <option value="low">Low</option>
+                                    <option value="medium">Medium</option>
+                                    <option value="high">High</option>
+                                </select>
+                                <div class="form-text">Assessed risk level of the model.</div>
+                            </div>
+                            
+                            <div class="col-12 mb-3">
+                                <label for="api_endpoint" class="form-label">API Endpoint</label>
+                                <input type="text" class="form-control" id="api_endpoint" name="api_endpoint">
+                                <div class="form-text">API endpoint for the model, if applicable.</div>
+                            </div>
+                            
+                            {% if teams %}
+                            <div class="col-md-6 mb-3">
+                                <label for="team_id" class="form-label">Team</label>
+                                <select class="form-select" id="team_id" name="team_id">
+                                    <option value="">None (Personal Model)</option>
+                                    {% for team in teams %}
+                                    <option value="{{ team.id }}">{{ team.name }}</option>
+                                    {% endfor %}
+                                </select>
+                                <div class="form-text">Team that owns this model (if applicable).</div>
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <hr class="mb-4">
+                        
+                        <h5 class="mb-3">Data Information</h5>
+                        <div class="row mb-4">
+                            <div class="col-md-6 mb-3">
+                                <label for="data_sources" class="form-label">Data Sources</label>
+                                <input type="text" class="form-control" id="data_sources" name="data_sources">
+                                <div class="form-text">Sources of training data used (e.g. "Internal Database, Public Dataset").</div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="training_date" class="form-label">Training Date</label>
+                                <input type="date" class="form-control" id="training_date" name="training_date">
+                                <div class="form-text">Date when the model was last trained.</div>
+                            </div>
+                            
+                            <div class="col-md-12 mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="contains_pii" name="contains_pii">
+                                    <label class="form-check-label" for="contains_pii">
+                                        Contains PII (Personally Identifiable Information)
+                                    </label>
+                                </div>
+                                <div class="form-text ms-4">Check if the model processes or was trained on data containing personal information.</div>
+                            </div>
+                        </div>
+                        
+                        <hr class="mb-4">
+                        
+                        <h5 class="mb-3">Bias & Fairness</h5>
+                        <div class="row mb-4">
+                            <div class="col-md-12 mb-3">
+                                <label class="form-label">Sensitive Attributes in Data</label>
+                                <div class="row ms-1">
+                                    <div class="col-md-3 mb-2">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="attr_gender" name="sensitive_attributes" value="gender">
+                                            <label class="form-check-label" for="attr_gender">Gender</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 mb-2">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="attr_race" name="sensitive_attributes" value="race">
+                                            <label class="form-check-label" for="attr_race">Race/Ethnicity</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 mb-2">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="attr_age" name="sensitive_attributes" value="age">
+                                            <label class="form-check-label" for="attr_age">Age</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 mb-2">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="attr_disability" name="sensitive_attributes" value="disability">
+                                            <label class="form-check-label" for="attr_disability">Disability</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 mb-2">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="attr_religion" name="sensitive_attributes" value="religion">
+                                            <label class="form-check-label" for="attr_religion">Religion</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 mb-2">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="attr_nationality" name="sensitive_attributes" value="nationality">
+                                            <label class="form-check-label" for="attr_nationality">Nationality</label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-text">Select any sensitive attributes present in your training data or processed by the model.</div>
+                            </div>
+                            
+                            <div class="col-md-12 mb-3">
+                                <label for="fairness_considerations" class="form-label">Fairness Considerations</label>
+                                <textarea class="form-control" id="fairness_considerations" name="fairness_considerations" rows="2"></textarea>
+                                <div class="form-text">Describe any fairness measures implemented in the model.</div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ url_for('governance.ai_models') }}" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left"></i> Cancel
+                            </a>
+                            <div>
+                                <button type="reset" class="btn btn-outline-secondary me-2">
+                                    <i class="bi bi-arrow-clockwise"></i> Reset
+                                </button>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-plus-circle"></i> Add Model
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Form validation logic can go here
+        const form = document.querySelector('form');
+        
+        form.addEventListener('submit', function(event) {
+            // Custom validation if needed
+            const modelName = document.getElementById('name').value.trim();
+            const modelVersion = document.getElementById('version').value.trim();
+            const modelType = document.getElementById('model_type').value;
+            const riskLevel = document.getElementById('risk_level').value;
+            
+            if (!modelName || !modelVersion || !modelType || !riskLevel) {
+                event.preventDefault();
+                alert('Please fill in all required fields');
+            }
+        });
+        
+        // Update risk level description based on selection
+        const riskLevelSelect = document.getElementById('risk_level');
+        
+        riskLevelSelect.addEventListener('change', function() {
+            const selectedRisk = this.value;
+            
+            // You could update a help text element here if you wanted to
+            // provide more information about each risk level
+            
+            if (selectedRisk === 'high') {
+                // Could add special validation or warnings for high-risk models
+                console.log('High risk model selected');
+            }
+        });
+    });
+</script>
+{% endblock %} 

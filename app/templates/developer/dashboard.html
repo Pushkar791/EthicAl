@@ -1,0 +1,214 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1 class="h2 mb-4">Developer Dashboard</h1>
+
+<div class="row mb-4">
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card dashboard-stat-card stat-primary h-100 py-2">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">AI Models</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">3</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-cpu fs-2 text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card dashboard-stat-card stat-success h-100 py-2">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Bias Reports</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">4</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-bar-chart fs-2 text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card dashboard-stat-card stat-info h-100 py-2">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Certifications</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">2</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-award fs-2 text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card dashboard-stat-card stat-warning h-100 py-2">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Compliance Tasks</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">5</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-check2-square fs-2 text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-lg-8">
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="m-0 font-weight-bold">My AI Models</h5>
+                <a href="{{ url_for('bias_analyzer.models') }}" class="btn btn-sm btn-primary">View All</a>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Type</th>
+                                <th>Risk Level</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Customer Segmentation</td>
+                                <td>Clustering</td>
+                                <td><span class="badge risk-medium">medium</span></td>
+                                <td>Analyzed</td>
+                                <td><a href="#" class="btn btn-sm btn-outline-primary">View</a></td>
+                            </tr>
+                            <tr>
+                                <td>Loan Approval</td>
+                                <td>Classification</td>
+                                <td><span class="badge risk-high">high</span></td>
+                                <td>Pending</td>
+                                <td><a href="#" class="btn btn-sm btn-outline-primary">View</a></td>
+                            </tr>
+                            <tr>
+                                <td>Product Recommendation</td>
+                                <td>Recommendation</td>
+                                <td><span class="badge risk-low">low</span></td>
+                                <td>Analyzed</td>
+                                <td><a href="#" class="btn btn-sm btn-outline-primary">View</a></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="m-0 font-weight-bold">Learning Progress</h5>
+            </div>
+            <div class="card-body">
+                <h6 class="mb-3">Ongoing Courses</h6>
+                <div class="mb-4">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span>Responsible AI Development</span>
+                        <span>65%</span>
+                    </div>
+                    <div class="progress" style="height: 8px;">
+                        <div class="progress-bar bg-info" role="progressbar" style="width: 65%;" aria-valuenow="65" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                </div>
+                <div class="mb-4">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span>Fairness in ML</span>
+                        <span>40%</span>
+                    </div>
+                    <div class="progress" style="height: 8px;">
+                        <div class="progress-bar bg-warning" role="progressbar" style="width: 40%;" aria-valuenow="40" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                </div>
+                <a href="{{ url_for('learning_hub.index') }}" class="btn btn-sm btn-primary w-100 mt-3">Continue Learning</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="m-0 font-weight-bold">Recent Bias Detection Results</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-header bg-light">
+                                <h6 class="mb-0">Gender Bias Analysis</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between mb-3">
+                                    <span>Bias Score:</span>
+                                    <span class="text-warning fw-bold">0.18</span>
+                                </div>
+                                <p class="card-text small">Medium bias detected in the Customer Segmentation model with gender-related features.</p>
+                                <a href="#" class="btn btn-sm btn-outline-primary">View Report</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-header bg-light">
+                                <h6 class="mb-0">Age Bias Analysis</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between mb-3">
+                                    <span>Bias Score:</span>
+                                    <span class="text-success fw-bold">0.09</span>
+                                </div>
+                                <p class="card-text small">Low bias detected in the Loan Approval model with age-related features.</p>
+                                <a href="#" class="btn btn-sm btn-outline-primary">View Report</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-header bg-light">
+                                <h6 class="mb-0">Race Bias Analysis</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between mb-3">
+                                    <span>Bias Score:</span>
+                                    <span class="text-danger fw-bold">0.27</span>
+                                </div>
+                                <p class="card-text small">High bias detected in the Product Recommendation model with race-related features.</p>
+                                <a href="#" class="btn btn-sm btn-outline-primary">View Report</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Additional dashboard-specific JavaScript can go here
+</script>
+{% endblock %} 

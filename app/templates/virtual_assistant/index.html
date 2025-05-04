@@ -1,0 +1,199 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1 class="h2 mb-4">Virtual Assistant</h1>
+
+<div class="row mb-4">
+    <div class="col-lg-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="m-0 font-weight-bold">AI Ethics Virtual Assistant</h5>
+            </div>
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-md-6">
+                        <h4 class="mb-3">How can I help you today?</h4>
+                        <p>
+                            I'm your AI ethics and governance assistant. You can ask me about:
+                        </p>
+                        <ul>
+                            <li>AI ethics principles and frameworks</li>
+                            <li>Guidance on model compliance</li>
+                            <li>Bias detection and mitigation techniques</li>
+                            <li>Learning resources and courses</li>
+                            <li>Policy documentation and requirements</li>
+                        </ul>
+                        <div class="mt-3">
+                            <a href="{{ url_for('virtual_assistant.chat') }}" class="btn btn-primary">
+                                <i class="bi bi-chat-dots me-2"></i> Start Chatting
+                            </a>
+                            <div class="mt-2 text-success">
+                                <i class="bi bi-volume-up me-1"></i> <small>Now with voice feedback!</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 text-center">
+                        <!-- Fallback to an icon if image is missing -->
+                        <div class="assistant-img-container">
+                            <i class="bi bi-robot text-primary" style="font-size: 8rem;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mb-4">
+            <div class="card-header bg-light">
+                <h5 class="m-0">New Features</h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-sm-6">
+                        <div class="feature-card p-3 border rounded h-100">
+                            <div class="d-flex align-items-center mb-2">
+                                <i class="bi bi-volume-up text-primary me-2 fs-4"></i>
+                                <h6 class="m-0">Voice Feedback</h6>
+                            </div>
+                            <p class="text-muted small mb-0">
+                                Enable voice responses to hear the assistant speak its answers aloud. Perfect for accessibility and multitasking.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="feature-card p-3 border rounded h-100">
+                            <div class="d-flex align-items-center mb-2">
+                                <i class="bi bi-shield-check text-primary me-2 fs-4"></i>
+                                <h6 class="m-0">Enhanced Error Handling</h6>
+                            </div>
+                            <p class="text-muted small mb-0">
+                                Improved stability and robust error recovery ensures you never lose a conversation due to technical issues.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="m-0">Your Privacy Controls</h5>
+            </div>
+            <div class="card-body">
+                <div class="privacy-settings">
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" id="consentStorage" checked>
+                        <label class="form-check-label" for="consentStorage">
+                            <strong>Data Storage</strong>
+                            <div class="small text-muted">Allow your conversations to be stored for better service</div>
+                        </label>
+                    </div>
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" id="consentAnalytics" checked>
+                        <label class="form-check-label" for="consentAnalytics">
+                            <strong>Analytics</strong>
+                            <div class="small text-muted">Allow anonymous usage data to improve the assistant</div>
+                        </label>
+                    </div>
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" id="consentPersonalization">
+                        <label class="form-check-label" for="consentPersonalization">
+                            <strong>Personalization</strong>
+                            <div class="small text-muted">Enable personalized responses based on your interactions</div>
+                        </label>
+                    </div>
+                    <hr>
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" id="voiceFeedbackDefault">
+                        <label class="form-check-label" for="voiceFeedbackDefault">
+                            <strong>Voice Feedback</strong>
+                            <div class="small text-muted">Enable voice responses by default in chat sessions</div>
+                        </label>
+                    </div>
+                    <a href="{{ url_for('virtual_assistant.history') }}" class="btn btn-sm btn-outline-primary w-100">
+                        <i class="bi bi-clock-history me-2"></i> View Conversation History
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        {% if recent_interactions %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="m-0">Recent Conversations</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    {% for interaction in recent_interactions %}
+                    <div class="list-group-item py-3">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <small class="text-muted">{{ interaction.timestamp | deltatime }}</small>
+                        </div>
+                        <p class="mb-1 text-truncate"><strong>You:</strong> {{ interaction.query }}</p>
+                        <p class="mb-0 text-truncate small text-muted"><strong>Assistant:</strong> {{ interaction.response }}</p>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% if recent_interactions|length >= 5 %}
+                <div class="card-footer bg-light text-center py-2">
+                    <a href="{{ url_for('virtual_assistant.history') }}" class="text-decoration-none small">
+                        View all conversations <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block styles %}
+<style>
+    .assistant-img-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 250px;
+        background-color: rgba(13, 110, 253, 0.05);
+        border-radius: 8px;
+    }
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle voice feedback toggle in settings
+    const voiceFeedbackDefault = document.getElementById('voiceFeedbackDefault');
+    if (voiceFeedbackDefault) {
+        // Load saved preference
+        const savedPreference = localStorage.getItem('voiceFeedbackEnabled');
+        if (savedPreference) {
+            voiceFeedbackDefault.checked = savedPreference === 'true';
+        }
+        
+        // Save preference when changed
+        voiceFeedbackDefault.addEventListener('change', function() {
+            localStorage.setItem('voiceFeedbackEnabled', this.checked.toString());
+        });
+    }
+    
+    // Handle privacy settings
+    const privacySettings = document.querySelectorAll('.privacy-settings input[type="checkbox"]');
+    privacySettings.forEach(setting => {
+        if (setting.id !== 'voiceFeedbackDefault') {
+            const savedSetting = localStorage.getItem(setting.id);
+            if (savedSetting) {
+                setting.checked = savedSetting === 'true';
+            }
+            
+            setting.addEventListener('change', function() {
+                localStorage.setItem(this.id, this.checked.toString());
+            });
+        }
+    });
+});
+</script>
+{% endblock %} 

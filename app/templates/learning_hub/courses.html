@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1 class="h2 mb-4">Available Courses</h1>
+
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <div class="row align-items-center">
+                    <div class="col-md-6">
+                        <h5 class="m-0">All Courses</h5>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="input-group">
+                            <input type="text" class="form-control" placeholder="Search courses...">
+                            <button class="btn btn-outline-secondary" type="button">Search</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Course Title</th>
+                                <th>Difficulty</th>
+                                <th>Duration</th>
+                                <th>Certification</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if courses %}
+                                {% for course in courses %}
+                                    <tr>
+                                        <td>
+                                            <strong>{{ course.title }}</strong>
+                                            <div class="small text-muted">{{ course.description }}</div>
+                                        </td>
+                                        <td>
+                                            <span class="badge {% if course.difficulty == 'Beginner' %}bg-success{% elif course.difficulty == 'Intermediate' %}bg-warning{% else %}bg-danger{% endif %}">
+                                                {{ course.difficulty }}
+                                            </span>
+                                        </td>
+                                        <td>{{ course.duration }} hours</td>
+                                        <td>
+                                            {% if course.has_certification %}
+                                                <span class="badge bg-success">Yes</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">No</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <a href="{{ url_for('learning_hub.course', course_id=course.id) }}" class="btn btn-sm btn-primary">View Course</a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="5" class="text-center py-4">
+                                        <p class="text-muted mb-0">No courses available at the moment.</p>
+                                    </td>
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-primary text-white">
+                <h5 class="m-0">Recommended Learning Paths</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-4">
+                    <h6>For Developers</h6>
+                    <ol class="ps-3">
+                        <li>AI Ethics Basics</li>
+                        <li>Responsible AI Development</li>
+                        <li>Fairness in Machine Learning</li>
+                    </ol>
+                </div>
+                <div class="mb-4">
+                    <h6>For Managers</h6>
+                    <ol class="ps-3">
+                        <li>AI Ethics Basics</li>
+                        <li>AI Governance for Managers</li>
+                        <li>Ethical Leadership in AI</li>
+                    </ol>
+                </div>
+                <div>
+                    <h6>For HR Professionals</h6>
+                    <ol class="ps-3">
+                        <li>AI Ethics Basics</li>
+                        <li>AI Privacy Fundamentals</li>
+                        <li>Building Ethical AI Culture</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-info text-white">
+                <h5 class="m-0">Course Catalog Statistics</h5>
+            </div>
+            <div class="card-body">
+                <div class="row mb-4">
+                    <div class="col-6 text-center">
+                        <div class="h2 mb-0">{{ courses|length }}</div>
+                        <div class="small text-muted">Total Courses</div>
+                    </div>
+                    <div class="col-6 text-center">
+                        <div class="h2 mb-0">7</div>
+                        <div class="small text-muted">Certificates Available</div>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <h6 class="mb-2">Difficulty Distribution</h6>
+                    <div class="progress" style="height: 20px;">
+                        <div class="progress-bar bg-success" role="progressbar" style="width: 40%;" aria-valuenow="40" aria-valuemin="0" aria-valuemax="100">Beginner</div>
+                        <div class="progress-bar bg-warning" role="progressbar" style="width: 35%;" aria-valuenow="35" aria-valuemin="0" aria-valuemax="100">Intermediate</div>
+                        <div class="progress-bar bg-danger" role="progressbar" style="width: 25%;" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">Advanced</div>
+                    </div>
+                </div>
+                <div>
+                    <h6 class="mb-2">Most Popular Course</h6>
+                    <div class="card bg-light">
+                        <div class="card-body py-2">
+                            <p class="mb-0">AI Ethics Fundamentals (1,245 enrollments)</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,208 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1 class="h2 mb-4">My Certificates</h1>
+
+<div class="row mb-4">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="m-0">Earned Certificates</h5>
+            </div>
+            <div class="card-body">
+                {% if certificates %}
+                    <div class="row">
+                        {% for certificate in certificates %}
+                            <div class="col-md-6 mb-4">
+                                <div class="card certificate-card h-100">
+                                    <div class="card-body">
+                                        <div class="certificate-header d-flex justify-content-between align-items-start">
+                                            <div>
+                                                <h5 class="card-title">{{ certificate.title }}</h5>
+                                                <p class="card-text small text-muted">Issued on {{ certificate.issued_date.strftime('%B %d, %Y') }}</p>
+                                            </div>
+                                            <div class="certificate-badge">
+                                                <i class="bi bi-award text-primary fs-2"></i>
+                                            </div>
+                                        </div>
+                                        <div class="certificate-actions mt-4">
+                                            <div class="d-flex gap-2">
+                                                <a href="{{ url_for('learning_hub.view_certificate', certificate_id=certificate.id) }}" class="btn btn-sm btn-outline-primary">View</a>
+                                                <a href="{{ url_for('learning_hub.download_certificate', certificate_id=certificate.id) }}" class="btn btn-sm btn-primary">Download</a>
+                                                <button class="btn btn-sm btn-outline-secondary">Share</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <div class="mb-3">
+                            <i class="bi bi-award text-muted fs-1"></i>
+                        </div>
+                        <h5>No Certificates Yet</h5>
+                        <p class="text-muted">Complete courses and assessments to earn certificates.</p>
+                        <a href="{{ url_for('learning_hub.index') }}" class="btn btn-primary">Browse Courses</a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="m-0">Certificate Summary</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between mb-3">
+                    <span>Total Certificates:</span>
+                    <span class="fw-bold">{{ certificates|length }}</span>
+                </div>
+                <div class="d-flex justify-content-between mb-3">
+                    <span>Recent Achievement:</span>
+                    <span class="fw-bold">
+                        {% if certificates %}
+                            {{ certificates[0].issued_date.strftime('%b %d') }}
+                        {% else %}
+                            None
+                        {% endif %}
+                    </span>
+                </div>
+                <div class="d-flex justify-content-between mb-3">
+                    <span>Courses Completed:</span>
+                    <span class="fw-bold">{{ certificates|length }}/5</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header bg-light">
+                <h5 class="m-0">Certificate Benefits</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled">
+                    <li class="mb-2">
+                        <i class="bi bi-check-circle-fill text-success me-2"></i>
+                        Demonstrate AI ethics knowledge
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-check-circle-fill text-success me-2"></i>
+                        Shareable on professional profiles
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-check-circle-fill text-success me-2"></i>
+                        Showcase commitment to responsible AI
+                    </li>
+                    <li>
+                        <i class="bi bi-check-circle-fill text-success me-2"></i>
+                        Verified skills credential
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="m-0">Recommended Next Steps</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    {% if certificates %}
+                        <div class="col-md-4 mb-3 mb-md-0">
+                            <div class="card h-100">
+                                <div class="card-body text-center">
+                                    <i class="bi bi-mortarboard fs-1 text-primary mb-3"></i>
+                                    <h5>Advanced Courses</h5>
+                                    <p class="small">Take your learning to the next level with advanced courses.</p>
+                                    <a href="{{ url_for('learning_hub.courses') }}" class="btn btn-sm btn-outline-primary">Explore Advanced Courses</a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3 mb-md-0">
+                            <div class="card h-100">
+                                <div class="card-body text-center">
+                                    <i class="bi bi-people fs-1 text-primary mb-3"></i>
+                                    <h5>Join Our Community</h5>
+                                    <p class="small">Connect with other AI ethics professionals to share insights.</p>
+                                    <button class="btn btn-sm btn-outline-primary">Join Community</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card h-100">
+                                <div class="card-body text-center">
+                                    <i class="bi bi-share fs-1 text-primary mb-3"></i>
+                                    <h5>Share Your Achievement</h5>
+                                    <p class="small">Add your certificates to LinkedIn and other profiles.</p>
+                                    <button class="btn btn-sm btn-outline-primary">Share Achievements</button>
+                                </div>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="col-md-4 mb-3 mb-md-0">
+                            <div class="card h-100">
+                                <div class="card-body text-center">
+                                    <i class="bi bi-mortarboard fs-1 text-primary mb-3"></i>
+                                    <h5>Start Learning</h5>
+                                    <p class="small">Begin with our foundational AI ethics courses.</p>
+                                    <a href="{{ url_for('learning_hub.index') }}" class="btn btn-sm btn-outline-primary">Browse Courses</a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3 mb-md-0">
+                            <div class="card h-100">
+                                <div class="card-body text-center">
+                                    <i class="bi bi-journal-text fs-1 text-primary mb-3"></i>
+                                    <h5>Skill Assessment</h5>
+                                    <p class="small">Take our skill assessment to find the right course for you.</p>
+                                    <a href="{{ url_for('learning_hub.skill_assessment') }}" class="btn btn-sm btn-outline-primary">Take Assessment</a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card h-100">
+                                <div class="card-body text-center">
+                                    <i class="bi bi-calendar-event fs-1 text-primary mb-3"></i>
+                                    <h5>Learning Schedule</h5>
+                                    <p class="small">Create a learning schedule to achieve your goals.</p>
+                                    <a href="{{ url_for('learning_hub.plan_schedule') }}" class="btn btn-sm btn-outline-primary">Plan Schedule</a>
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block styles %}
+<style>
+    .certificate-card {
+        transition: all 0.3s ease;
+        border: 1px solid rgba(0,0,0,0.125);
+    }
+    
+    .certificate-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+    
+    .certificate-badge {
+        background: rgba(13, 110, 253, 0.1);
+        border-radius: 50%;
+        width: 48px;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+</style>
+{% endblock %} 

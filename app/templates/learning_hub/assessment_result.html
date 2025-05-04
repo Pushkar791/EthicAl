@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-lg-9 mx-auto">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('learning_hub.index') }}">Learning Hub</a></li>
+                    <li class="breadcrumb-item"><a href="{{ url_for('learning_hub.course', course_id=attempt.assessment.course_id) }}">{{ attempt.assessment.course.title }}</a></li>
+                    <li class="breadcrumb-item active">Assessment Results</li>
+                </ol>
+            </nav>
+            
+            <div class="card mb-4">
+                <div class="card-header {% if attempt.passed %}bg-success{% else %}bg-danger{% endif %} text-white">
+                    <h1 class="h3 mb-0">
+                        {% if attempt.passed %}
+                            <i class="bi bi-check-circle me-2"></i> Assessment Passed
+                        {% else %}
+                            <i class="bi bi-x-circle me-2"></i> Assessment Not Passed
+                        {% endif %}
+                    </h1>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <div class="display-4 mb-1">{{ "%.1f"|format(attempt.score) }}%</div>
+                        <p class="text-muted">
+                            Your score for {{ attempt.assessment.title }}
+                            <span class="ms-2 badge {% if attempt.passed %}bg-success{% else %}bg-danger{% endif %}">
+                                {{ "Passed" if attempt.passed else "Failed" }}
+                            </span>
+                        </p>
+                        <div class="progress mt-2 mb-3" style="height: 10px;">
+                            <div class="progress-bar {% if attempt.passed %}bg-success{% else %}bg-danger{% endif %}" role="progressbar" style="width: {{ attempt.score }}%;" aria-valuenow="{{ attempt.score }}" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                        <p class="small text-muted">Passing score: {{ attempt.assessment.passing_score }}%</p>
+                    </div>
+                    
+                    {% if attempt.passed %}
+                    <div class="alert alert-success text-center mb-4">
+                        <i class="bi bi-trophy me-2"></i>
+                        <strong>Congratulations!</strong> You have successfully completed this assessment.
+                        <div class="mt-2">
+                            <a href="{{ url_for('learning_hub.certificates') }}" class="btn btn-outline-success btn-sm">
+                                <i class="bi bi-award"></i> View Your Certificate
+                            </a>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-warning text-center mb-4">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        <strong>Almost there!</strong> You need to score at least {{ attempt.assessment.passing_score }}% to pass. Review the course material and try again.
+                        <div class="mt-2">
+                            <a href="{{ url_for('learning_hub.course', course_id=attempt.assessment.course_id) }}" class="btn btn-outline-warning btn-sm">
+                                <i class="bi bi-book"></i> Review Course
+                            </a>
+                            <a href="{{ url_for('learning_hub.assessment', assessment_id=attempt.assessment_id) }}" class="btn btn-warning btn-sm ms-2">
+                                <i class="bi bi-arrow-repeat"></i> Retry Assessment
+                            </a>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="mb-4">
+                        <h4>Attempt Details</h4>
+                        <ul class="list-group">
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span>Date Completed</span>
+                                <span>{{ attempt.completed_at.strftime('%B %d, %Y, %H:%M') }}</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span>Assessment</span>
+                                <span>{{ attempt.assessment.title }}</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span>Total Questions</span>
+                                <span>{{ attempt.answers|length }}</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span>Correct Answers</span>
+                                <span class="badge bg-success rounded-pill">{{ attempt.correct_answers }} / {{ attempt.answers|length }}</span>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <div class="accordion" id="answersAccordion">
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="answersHeading">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#answersCollapse" aria-expanded="false" aria-controls="answersCollapse">
+                                    <i class="bi bi-list-check me-2"></i> Review Your Answers
+                                </button>
+                            </h2>
+                            <div id="answersCollapse" class="accordion-collapse collapse" aria-labelledby="answersHeading">
+                                <div class="accordion-body p-0">
+                                    <ul class="list-group list-group-flush">
+                                        {% for answer in attempt.answers %}
+                                        <li class="list-group-item">
+                                            <div class="mb-2">
+                                                <div class="d-flex justify-content-between">
+                                                    <h6>Question {{ loop.index }}</h6>
+                                                    <span class="badge {{ 'bg-success' if answer.is_correct else 'bg-danger' }}">
+                                                        {{ 'Correct' if answer.is_correct else 'Incorrect' }}
+                                                    </span>
+                                                </div>
+                                                <p>{{ answer.question.question_text }}</p>
+                                            </div>
+                                            
+                                            <div class="mb-2">
+                                                <strong>Your Answer:</strong>
+                                                <div class="ms-3 mt-1 {{ 'text-success' if answer.is_correct else 'text-danger' }}">
+                                                    {{ answer.selected_option.option_text if answer.selected_option else 'No answer provided' }}
+                                                </div>
+                                            </div>
+                                            
+                                            {% if not answer.is_correct %}
+                                            <div>
+                                                <strong>Correct Answer:</strong>
+                                                <div class="ms-3 mt-1 text-success">
+                                                    {% for option in answer.question.options %}
+                                                        {% if option.is_correct %}
+                                                            {{ option.option_text }}
+                                                        {% endif %}
+                                                    {% endfor %}
+                                                </div>
+                                            </div>
+                                            {% endif %}
+                                            
+                                            {% if answer.question.explanation %}
+                                            <div class="mt-2 p-2 bg-light rounded">
+                                                <strong>Explanation:</strong>
+                                                <p class="mb-0 mt-1">{{ answer.question.explanation }}</p>
+                                            </div>
+                                            {% endif %}
+                                        </li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between mt-4">
+                        <a href="{{ url_for('learning_hub.course', course_id=attempt.assessment.course_id) }}" class="btn btn-outline-primary">
+                            <i class="bi bi-arrow-left"></i> Return to Course
+                        </a>
+                        
+                        {% if attempt.passed %}
+                        <a href="{{ url_for('learning_hub.certificates') }}" class="btn btn-success">
+                            <i class="bi bi-award"></i> View Certificate
+                        </a>
+                        {% else %}
+                        <a href="{{ url_for('learning_hub.assessment', assessment_id=attempt.assessment_id) }}" class="btn btn-primary">
+                            <i class="bi bi-arrow-repeat"></i> Try Again
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Assessment results specific scripts can go here
+</script>
+{% endblock %} 

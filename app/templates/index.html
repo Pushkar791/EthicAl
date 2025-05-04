@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="jumbotron bg-light p-5 rounded-3 mb-5">
+    <div class="container">
+        <h1 class="display-4">EthicAI <span class="text-primary">Enterprise Suite</span></h1>
+        <p class="lead">Comprehensive AI ethics and governance platform for responsible enterprise AI adoption.</p>
+        <hr class="my-4">
+        <p>Build and deploy AI systems that are fair, transparent, and accountable with our integrated suite of tools.</p>
+        {% if not current_user.is_authenticated %}
+        <div class="mt-4">
+            <a class="btn btn-primary btn-lg" href="{{ url_for('auth.register') }}" role="button">Get Started</a>
+            <a class="btn btn-outline-secondary btn-lg ms-2" href="{{ url_for('auth.login') }}" role="button">Sign In</a>
+        </div>
+        {% else %}
+        <div class="mt-4">
+            <a class="btn btn-primary btn-lg" href="{{ url_for('main.dashboard') }}" role="button">Go to Dashboard</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row mb-5">
+    <div class="col-md-3">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-mortarboard fs-1 text-primary mb-3"></i>
+                <h3 class="card-title">AI Ethics Learning Hub</h3>
+                <p class="card-text">Interactive lessons, simulations, and assessments to build AI ethics competency across your organization.</p>
+                <a href="{{ url_for('learning_hub.index') }}" class="btn btn-outline-primary">Learn More</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-shield-check fs-1 text-primary mb-3"></i>
+                <h3 class="card-title">Governance & Compliance</h3>
+                <p class="card-text">Comprehensive tools for tracking model metadata, maintaining audit logs, and ensuring compliance with regulations.</p>
+                <a href="{{ url_for('governance.index') }}" class="btn btn-outline-primary">Learn More</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-bar-chart fs-1 text-primary mb-3"></i>
+                <h3 class="card-title">Bias Detection & Fairness</h3>
+                <p class="card-text">Analyze AI models for bias and fairness issues with intuitive visualizations and actionable recommendations.</p>
+                <a href="{{ url_for('bias_analyzer.index') }}" class="btn btn-outline-primary">Learn More</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-chat-dots fs-1 text-primary mb-3"></i>
+                <h3 class="card-title">Privacy-Aware Assistant</h3>
+                <p class="card-text">AI-powered assistant designed with privacy-by-design principles to help with governance and ethics questions.</p>
+                <a href="{{ url_for('virtual_assistant.index') }}" class="btn btn-outline-primary">Learn More</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row align-items-center mb-5">
+    <div class="col-lg-6">
+        <h2>Why Choose EthicAI?</h2>
+        <p class="lead">Our platform provides everything you need to build ethical AI systems at scale:</p>
+        <ul class="list-group list-group-flush">
+            <li class="list-group-item"><i class="bi bi-check-circle-fill text-success me-2"></i> Role-based learning paths for developers, managers, and HR professionals</li>
+            <li class="list-group-item"><i class="bi bi-check-circle-fill text-success me-2"></i> Comprehensive model governance and documentation tools</li>
+            <li class="list-group-item"><i class="bi bi-check-circle-fill text-success me-2"></i> Advanced bias detection across gender, age, race, and other dimensions</li>
+            <li class="list-group-item"><i class="bi bi-check-circle-fill text-success me-2"></i> Integration-ready architecture for enterprise systems</li>
+            <li class="list-group-item"><i class="bi bi-check-circle-fill text-success me-2"></i> GDPR and IEEE 7000-series compliance tools</li>
+        </ul>
+    </div>
+    <div class="col-lg-6">
+        <img src="{{ url_for('static', filename='img/ethics_dashboard.png') }}" alt="EthicAI Dashboard" class="img-fluid rounded shadow">
+    </div>
+</div>
+
+<div class="bg-light p-5 rounded-3 mb-5">
+    <h2 class="text-center mb-4">Trusted by Leading Organizations</h2>
+    <div class="row justify-content-center">
+        <div class="col-md-2 col-4 text-center mb-4">
+            <div class="bg-white p-3 rounded shadow-sm h-100 d-flex align-items-center justify-content-center">
+                <span class="fs-4 text-secondary">Company 1</span>
+            </div>
+        </div>
+        <div class="col-md-2 col-4 text-center mb-4">
+            <div class="bg-white p-3 rounded shadow-sm h-100 d-flex align-items-center justify-content-center">
+                <span class="fs-4 text-secondary">Company 2</span>
+            </div>
+        </div>
+        <div class="col-md-2 col-4 text-center mb-4">
+            <div class="bg-white p-3 rounded shadow-sm h-100 d-flex align-items-center justify-content-center">
+                <span class="fs-4 text-secondary">Company 3</span>
+            </div>
+        </div>
+        <div class="col-md-2 col-4 text-center mb-4">
+            <div class="bg-white p-3 rounded shadow-sm h-100 d-flex align-items-center justify-content-center">
+                <span class="fs-4 text-secondary">Company 4</span>
+            </div>
+        </div>
+        <div class="col-md-2 col-4 text-center mb-4">
+            <div class="bg-white p-3 rounded shadow-sm h-100 d-flex align-items-center justify-content-center">
+                <span class="fs-4 text-secondary">Company 5</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="text-center mb-5">
+    <h2>Ready to build ethical AI systems?</h2>
+    <p class="lead">Start your journey towards responsible AI adoption today.</p>
+    {% if not current_user.is_authenticated %}
+    <a class="btn btn-primary btn-lg mt-3" href="{{ url_for('auth.register') }}" role="button">Get Started</a>
+    {% else %}
+    <a class="btn btn-primary btn-lg mt-3" href="{{ url_for('main.dashboard') }}" role="button">Go to Dashboard</a>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Any landing page-specific JavaScript can go here
+</script>
+{% endblock %} 

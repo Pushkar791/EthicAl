@@ -1,0 +1,179 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <h1 class="h2 mb-4">Upload Model for Bias Analysis</h1>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-header bg-primary bg-opacity-10">
+                    <h5 class="m-0"><i class="bi bi-cloud-upload me-2"></i>Upload Model</h5>
+                </div>
+                <div class="card-body">
+                    <form id="model-upload-form" action="{{ url_for('bias_analyzer.upload_model') }}" method="post" enctype="multipart/form-data">
+                        <div class="mb-3">
+                            <label for="model_name" class="form-label">Model Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="model_name" name="model_name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="model_version" class="form-label">Version</label>
+                            <input type="text" class="form-control" id="model_version" name="model_version" placeholder="1.0">
+                        </div>
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description</label>
+                            <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="model_type" class="form-label">Model Type <span class="text-danger">*</span></label>
+                                <select class="form-select" id="model_type" name="model_type" required>
+                                    <option value="classification">Classification</option>
+                                    <option value="regression">Regression</option>
+                                    <option value="clustering">Clustering</option>
+                                    <option value="nlp">Natural Language Processing</option>
+                                    <option value="computer_vision">Computer Vision</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="risk_level" class="form-label">Risk Level <span class="text-danger">*</span></label>
+                                <select class="form-select" id="risk_level" name="risk_level" required>
+                                    <option value="low">Low</option>
+                                    <option value="medium" selected>Medium</option>
+                                    <option value="high">High</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="team_id" class="form-label">Team (Optional)</label>
+                            <select class="form-select" id="team_id" name="team_id">
+                                <option value="">-- None --</option>
+                                {% for team in teams %}
+                                <option value="{{ team.id }}">{{ team.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="upload_model_toggle" checked>
+                                <label class="form-check-label" for="upload_model_toggle">
+                                    Upload Model File 
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div id="model_file_section" class="mb-3">
+                            <label for="model_file" class="form-label">Model File (Optional)</label>
+                            <input class="form-control" type="file" id="model_file" name="model_file">
+                            <div class="form-text">
+                                Supported formats: .pkl, .h5, .model, .joblib
+                            </div>
+                        </div>
+                        
+                        <div id="api_section" class="mb-3 d-none">
+                            <label for="api_endpoint" class="form-label">API Endpoint (Optional)</label>
+                            <input type="url" class="form-control" id="api_endpoint" name="api_endpoint" placeholder="https://api.yourendpoint.com/v1/model">
+                            <div class="form-text">
+                                If your model is served via API, provide the endpoint URL
+                            </div>
+                        </div>
+                        
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle-fill me-2"></i>
+                            After uploading your model, you'll need to provide a test dataset to analyze for bias
+                        </div>
+                        
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-upload me-1"></i> Upload Model
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="m-0">About Model Upload</h5>
+                </div>
+                <div class="card-body">
+                    <p>Upload your trained model file or connect to your model API to begin bias analysis.</p>
+                    
+                    <hr>
+                    
+                    <h6><i class="bi bi-check-circle-fill text-success me-2"></i>Supported Model Formats</h6>
+                    <ul>
+                        <li>scikit-learn (.pkl, .joblib)</li>
+                        <li>TensorFlow/Keras (.h5)</li>
+                        <li>Custom format (.model)</li>
+                    </ul>
+                    
+                    <hr>
+                    
+                    <h6><i class="bi bi-shield-check text-primary me-2"></i>Privacy & Security</h6>
+                    <p class="small">Models remain private to you and your team. We do not access your model internals except for the bias analysis you request.</p>
+                    
+                    <hr>
+                    
+                    <h6><i class="bi bi-info-circle text-info me-2"></i>Next Steps</h6>
+                    <p class="small">After uploading your model, you'll need to provide a test dataset to evaluate for bias across different demographic dimensions.</p>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h5 class="m-0">Need Help?</h5>
+                </div>
+                <div class="card-body">
+                    <p>If you need assistance with model formats or compatibility:</p>
+                    <div class="d-grid gap-2">
+                        <a href="#" class="btn btn-outline-primary">
+                            <i class="bi bi-book me-1"></i> Read Documentation
+                        </a>
+                        <a href="#" class="btn btn-outline-secondary">
+                            <i class="bi bi-headset me-1"></i> Contact Support
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const uploadToggle = document.getElementById('upload_model_toggle');
+        const modelFileSection = document.getElementById('model_file_section');
+        const apiSection = document.getElementById('api_section');
+        
+        uploadToggle.addEventListener('change', function() {
+            if (this.checked) {
+                modelFileSection.classList.remove('d-none');
+                apiSection.classList.add('d-none');
+            } else {
+                modelFileSection.classList.add('d-none');
+                apiSection.classList.remove('d-none');
+            }
+        });
+        
+        // Form validation
+        const form = document.getElementById('model-upload-form');
+        form.addEventListener('submit', function(e) {
+            const modelFile = document.getElementById('model_file');
+            const apiEndpoint = document.getElementById('api_endpoint');
+            
+            if (!modelFile.files.length && !apiEndpoint.value.trim()) {
+                e.preventDefault();
+                alert('Please either upload a model file or provide an API endpoint');
+            }
+        });
+    });
+</script>
+{% endblock %} 

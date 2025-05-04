@@ -1,0 +1,195 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h2">Bias Reports</h1>
+        <a href="{{ url_for('bias_analyzer.new_analysis') }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle me-1"></i> New Analysis
+        </a>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header bg-primary bg-opacity-10">
+            <h5 class="m-0"><i class="bi bi-file-earmark-bar-graph me-2"></i>All Bias Reports</h5>
+        </div>
+        <div class="card-body">
+            {% if reports %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Model</th>
+                            <th>Report Type</th>
+                            <th>Created</th>
+                            <th>Bias Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for report in reports %}
+                        <tr>
+                            <td>
+                                {% if report.ai_model %}
+                                <a href="{{ url_for('bias_analyzer.view_model', model_id=report.ai_model.id) }}">
+                                    {{ report.ai_model.name }} (v{{ report.ai_model.version }})
+                                </a>
+                                {% else %}
+                                Unknown Model
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% set bias_types = report.report_type.split(',') %}
+                                {% for bias_type in bias_types %}
+                                <span class="badge bg-info text-dark">{{ bias_type }}</span>
+                                {% endfor %}
+                            </td>
+                            <td>{{ report.created_at.strftime('%Y-%m-%d %H:%M') if report.created_at else 'Unknown' }}</td>
+                            <td>
+                                {% set max_bias_score = 0 %}
+                                {% for bias_type, result in report.results.items() if result %}
+                                    {% if result.get('bias_score', 0) > max_bias_score %}
+                                        {% set max_bias_score = result.get('bias_score', 0) %}
+                                    {% endif %}
+                                {% endfor %}
+                                
+                                {% if max_bias_score > 0.2 %}
+                                <span class="badge bg-danger">High Bias</span>
+                                {% elif max_bias_score > 0.1 %}
+                                <span class="badge bg-warning text-dark">Medium Bias</span>
+                                {% else %}
+                                <span class="badge bg-success">Low Bias</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <a href="{{ url_for('bias_analyzer.view_report', report_id=report.id) }}" class="btn btn-outline-primary">
+                                        <i class="bi bi-eye"></i> View
+                                    </a>
+                                    <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ report.id }}">
+                                        <i class="bi bi-trash"></i> Delete
+                                    </button>
+                                </div>
+                                
+                                <!-- Delete confirmation modal -->
+                                <div class="modal fade" id="deleteModal{{ report.id }}" tabindex="-1" aria-hidden="true">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">Confirm Deletion</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <p>Are you sure you want to delete this bias report?</p>
+                                                <p><strong>This action cannot be undone.</strong></p>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                <form action="{{ url_for('bias_analyzer.delete_report', report_id=report.id) }}" method="post">
+                                                    <button type="submit" class="btn btn-danger">Delete Report</button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle-fill me-2"></i>
+                No bias reports found. Start by analyzing one of your models.
+            </div>
+            <div class="text-center">
+                <a href="{{ url_for('bias_analyzer.models') }}" class="btn btn-primary">
+                    <i class="bi bi-bar-chart me-1"></i> Analyze a Model
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-6">
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="m-0">Understanding Bias Reports</h5>
+                </div>
+                <div class="card-body">
+                    <p>Each bias report analyzes your model across multiple potential bias dimensions:</p>
+                    
+                    <div class="d-flex align-items-center mb-3">
+                        <span class="badge bg-danger me-2">High Bias</span>
+                        <span>Significant bias detected. Immediate mitigation recommended.</span>
+                    </div>
+                    
+                    <div class="d-flex align-items-center mb-3">
+                        <span class="badge bg-warning text-dark me-2">Medium Bias</span>
+                        <span>Some bias detected. Consider model adjustments.</span>
+                    </div>
+                    
+                    <div class="d-flex align-items-center mb-3">
+                        <span class="badge bg-success me-2">Low Bias</span>
+                        <span>Minimal bias detected. Continue monitoring.</span>
+                    </div>
+                    
+                    <hr>
+                    
+                    <p class="small text-muted">Reports include detailed visualizations and recommendations for bias mitigation.</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h5 class="m-0">Common Bias Types</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <ul class="list-unstyled">
+                                <li class="mb-2">
+                                    <i class="bi bi-gender-ambiguous text-primary me-2"></i>
+                                    <strong>Gender Bias</strong>
+                                </li>
+                                <li class="mb-2">
+                                    <i class="bi bi-globe text-primary me-2"></i>
+                                    <strong>Racial Bias</strong>
+                                </li>
+                                <li class="mb-2">
+                                    <i class="bi bi-calendar-date text-primary me-2"></i>
+                                    <strong>Age Bias</strong>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <ul class="list-unstyled">
+                                <li class="mb-2">
+                                    <i class="bi bi-geo-alt text-primary me-2"></i>
+                                    <strong>Geographic Bias</strong>
+                                </li>
+                                <li class="mb-2">
+                                    <i class="bi bi-buildings text-primary me-2"></i>
+                                    <strong>Socioeconomic Bias</strong>
+                                </li>
+                                <li class="mb-2">
+                                    <i class="bi bi-universal-access text-primary me-2"></i>
+                                    <strong>Ability Bias</strong>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <p class="small text-muted">Need help understanding a specific bias type? <a href="#">Contact our ethical AI team</a> for guidance.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

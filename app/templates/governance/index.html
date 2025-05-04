@@ -1,0 +1,258 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1 class="h2 mb-4">Governance & Compliance Manager</h1>
+
+<div class="row mb-4">
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card dashboard-stat-card stat-primary h-100 py-2">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">AI Models</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ ai_models|length }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-cpu fs-2 text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card dashboard-stat-card stat-success h-100 py-2">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Frameworks</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ frameworks|length }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-diagram-3 fs-2 text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card dashboard-stat-card stat-info h-100 py-2">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Policies</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ policy_docs|length }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-file-earmark-text fs-2 text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card dashboard-stat-card stat-warning h-100 py-2">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Overall Compliance</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">78%</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-shield-check fs-2 text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-lg-8">
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="m-0 font-weight-bold">Your AI Models</h5>
+                <a href="{{ url_for('governance.ai_models') }}" class="btn btn-sm btn-primary">View All</a>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Model Name</th>
+                                <th>Type</th>
+                                <th>Risk Level</th>
+                                <th>Compliance</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if ai_models %}
+                                {% for model in ai_models[:5] %}
+                                    <tr>
+                                        <td>
+                                            <strong>{{ model.name }}</strong>
+                                            <div class="small text-muted">v{{ model.version }}</div>
+                                        </td>
+                                        <td>{{ model.model_type }}</td>
+                                        <td>
+                                            <span class="badge {% if model.risk_level == 'high' %}bg-danger{% elif model.risk_level == 'medium' %}bg-warning{% else %}bg-success{% endif %}">
+                                                {{ model.risk_level }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <div class="progress" style="height: 5px;">
+                                                {% set compliance = [65, 78, 82, 92, 45]|random %}
+                                                <div class="progress-bar {% if compliance < 60 %}bg-danger{% elif compliance < 80 %}bg-warning{% else %}bg-success{% endif %}" 
+                                                     role="progressbar" 
+                                                     style="width: {{ compliance }}%;" 
+                                                     aria-valuenow="{{ compliance }}" 
+                                                     aria-valuemin="0" 
+                                                     aria-valuemax="100">
+                                                </div>
+                                            </div>
+                                            <div class="small text-muted text-end">{{ compliance }}%</div>
+                                        </td>
+                                        <td>
+                                            <a href="{{ url_for('governance.ai_model', model_id=model.id) }}" class="btn btn-sm btn-outline-primary">View</a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="5" class="text-center py-3">
+                                        <p class="text-muted mb-0">No AI models registered yet.</p>
+                                        <a href="{{ url_for('governance.add_ai_model') }}" class="btn btn-sm btn-primary mt-2">Add Model</a>
+                                    </td>
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="m-0 font-weight-bold">Compliance Frameworks</h5>
+            </div>
+            <div class="card-body">
+                {% if frameworks %}
+                    {% for framework in frameworks[:3] %}
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span>{{ framework.name }}</span>
+                                <span>{{ [75, 85, 92, 68]|random }}%</span>
+                            </div>
+                            <div class="progress" style="height: 8px;">
+                                {% set compliance = [75, 85, 92, 68]|random %}
+                                <div class="progress-bar {% if compliance < 60 %}bg-danger{% elif compliance < 80 %}bg-warning{% else %}bg-success{% endif %}" 
+                                     role="progressbar" 
+                                     style="width: {{ compliance }}%;" 
+                                     aria-valuenow="{{ compliance }}" 
+                                     aria-valuemin="0" 
+                                     aria-valuemax="100">
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center py-3">
+                        <p class="text-muted mb-0">No compliance frameworks defined.</p>
+                    </div>
+                {% endif %}
+                <a href="{{ url_for('governance.compliance_frameworks') }}" class="btn btn-sm btn-primary w-100 mt-3">View All Frameworks</a>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <h5 class="m-0 font-weight-bold">Recent Policy Updates</h5>
+            </div>
+            <div class="card-body">
+                {% if policy_docs %}
+                    <div class="policy-list">
+                        {% for policy in policy_docs[:3] %}
+                            <div class="policy-item mb-3">
+                                <div class="small text-muted">{{ policy.updated_at.strftime('%b %d, %Y') if policy.updated_at else 'N/A' }}</div>
+                                <div>
+                                    <a href="{{ url_for('governance.policy', policy_id=policy.id) }}">{{ policy.title }}</a>
+                                </div>
+                                <div class="small text-muted">v{{ policy.version }}</div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-3">
+                        <p class="text-muted mb-0">No policy documents created yet.</p>
+                    </div>
+                {% endif %}
+                <a href="{{ url_for('governance.policies') }}" class="btn btn-sm btn-primary w-100 mt-3">View All Policies</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="m-0 font-weight-bold">Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3 mb-3 mb-md-0">
+                        <div class="card bg-light h-100">
+                            <div class="card-body text-center">
+                                <i class="bi bi-plus-circle fs-1 text-primary mb-3"></i>
+                                <h5>Add AI Model</h5>
+                                <p class="small">Register a new AI model for governance and compliance tracking.</p>
+                                <a href="{{ url_for('governance.add_ai_model') }}" class="btn btn-sm btn-primary">Add Model</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3 mb-md-0">
+                        <div class="card bg-light h-100">
+                            <div class="card-body text-center">
+                                <i class="bi bi-clipboard-check fs-1 text-primary mb-3"></i>
+                                <h5>Compliance Check</h5>
+                                <p class="small">Run a quick compliance check on your existing AI models.</p>
+                                <button class="btn btn-sm btn-primary">Run Check</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3 mb-md-0">
+                        <div class="card bg-light h-100">
+                            <div class="card-body text-center">
+                                <i class="bi bi-file-earmark-plus fs-1 text-primary mb-3"></i>
+                                <h5>Create Policy</h5>
+                                <p class="small">Create a new policy document for AI governance.</p>
+                                <a href="{{ url_for('governance.add_policy') }}" class="btn btn-sm btn-primary">Create Policy</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-light h-100">
+                            <div class="card-body text-center">
+                                <i class="bi bi-journal-text fs-1 text-primary mb-3"></i>
+                                <h5>Generate Report</h5>
+                                <p class="small">Generate a compliance report for all registered AI models.</p>
+                                <button class="btn btn-sm btn-primary">Generate Report</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Additional governance dashboard-specific JavaScript can go here
+</script>
+{% endblock %} 

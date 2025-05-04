@@ -1,0 +1,110 @@
+/* Gene Loader Animation CSS */
+
+.gene-loader-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.9);
+    z-index: 9999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    backdrop-filter: blur(5px);
+}
+
+.gene-loader {
+    position: relative;
+    width: 80px;
+    height: 80px;
+    perspective: 800px;
+}
+
+.gene-strand {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transform-style: preserve-3d;
+    animation: rotateStrand 2s linear infinite;
+}
+
+.gene-helix {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: 4px solid transparent;
+    border-radius: 50%;
+    border-top-color: #007bff;
+    border-bottom-color: #dc3545;
+}
+
+.gene-helix:nth-child(1) {
+    transform: rotateY(0deg);
+}
+
+.gene-helix:nth-child(2) {
+    transform: rotateY(90deg);
+    border-top-color: #28a745;
+    border-bottom-color: #ffc107;
+}
+
+.gene-loader-text {
+    margin-top: 20px;
+    font-size: 16px;
+    color: #333;
+    font-weight: 500;
+}
+
+/* Small DNA elements that float around */
+.gene-loader::before,
+.gene-loader::after {
+    content: '';
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background-color: rgba(0, 123, 255, 0.5);
+    border-radius: 50%;
+    animation: floatParticle 4s ease-in-out infinite;
+}
+
+.gene-loader::before {
+    top: -20px;
+    left: 10px;
+}
+
+.gene-loader::after {
+    bottom: -15px;
+    right: 10px;
+    animation-delay: 1s;
+    background-color: rgba(220, 53, 69, 0.5);
+}
+
+/* Body overflow prevention */
+body.overflow-hidden {
+    overflow: hidden;
+}
+
+/* Animations */
+@keyframes rotateStrand {
+    0% {
+        transform: rotateX(0deg) rotateY(0deg);
+    }
+    100% {
+        transform: rotateX(360deg) rotateY(360deg);
+    }
+}
+
+@keyframes floatParticle {
+    0%, 100% {
+        transform: translateY(0) translateX(0);
+        opacity: 0.6;
+    }
+    50% {
+        transform: translateY(-20px) translateX(10px);
+        opacity: 1;
+    }
+} 

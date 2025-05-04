@@ -1,0 +1,233 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1>{{ title }}</h1>
+            <p class="text-muted">Model Type: {{ model.model_type }} | Risk Level: {{ model.risk_level }}</p>
+        </div>
+        <div>
+            <a href="{{ url_for('bias_analyzer.view_model', model_id=model.id) }}" class="btn btn-outline-primary">
+                <i class="fas fa-arrow-left"></i> Back to Model
+            </a>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">Bias Analysis Configuration</h4>
+        </div>
+        <div class="card-body">
+            <form id="analyze-model-form" method="post" enctype="multipart/form-data" action="{{ url_for('bias_analyzer.analyze_model', model_id=model.id) }}">
+                <input type="hidden" name="model_id" value="{{ model.id }}">
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="test_dataset" class="form-label fw-bold">Upload Test Dataset (CSV)</label>
+                            <input type="file" class="form-control" id="test_dataset" name="test_dataset" required accept=".csv">
+                            <div class="form-text text-muted">
+                                Upload a CSV file containing your test data. The dataset should include:
+                                <ul>
+                                    <li>Protected attributes (e.g., gender, race, age) as columns</li>
+                                    <li>Features used by your model</li>
+                                    <li>Target variable in the last column</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Bias Types to Analyze</label>
+                            <div class="form-text text-muted mb-2">
+                                Select one or more protected attributes to analyze for bias. These should match column names in your dataset.
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="bias_types" value="gender" id="gender_bias" checked>
+                                        <label class="form-check-label" for="gender_bias">Gender</label>
+                                    </div>
+                                    
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="bias_types" value="race" id="race_bias">
+                                        <label class="form-check-label" for="race_bias">Race/Ethnicity</label>
+                                    </div>
+                                    
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="bias_types" value="age" id="age_bias">
+                                        <label class="form-check-label" for="age_bias">Age</label>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="bias_types" value="education" id="education_bias">
+                                        <label class="form-check-label" for="education_bias">Education</label>
+                                    </div>
+                                    
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="bias_types" value="income" id="income_bias">
+                                        <label class="form-check-label" for="income_bias">Income Level</label>
+                                    </div>
+                                    
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="bias_types" value="disability" id="disability_bias">
+                                        <label class="form-check-label" for="disability_bias">Disability Status</label>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Custom bias type field -->
+                            <div class="mt-2">
+                                <div class="input-group">
+                                    <span class="input-group-text">Custom:</span>
+                                    <input type="text" class="form-control" id="custom_bias_type" name="custom_bias_type" placeholder="Enter column name...">
+                                    <button class="btn btn-outline-secondary" type="button" onclick="addCustomBiasType()">Add</button>
+                                </div>
+                                <div class="form-text text-muted">
+                                    For other protected attributes, enter the exact column name from your dataset.
+                                </div>
+                                <div id="custom_bias_types" class="mt-2"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="card h-100 bg-light">
+                            <div class="card-body">
+                                <h5 class="card-title">Analysis Options</h5>
+                                
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" id="enable_shap" name="enable_shap" value="true" checked>
+                                    <label class="form-check-label" for="enable_shap">
+                                        Enable SHAP Explainability
+                                    </label>
+                                    <div class="form-text text-muted">
+                                        Generate explanations showing which features contribute most to predictions and potential bias.
+                                    </div>
+                                </div>
+                                
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" id="enable_lime" name="enable_lime" value="true">
+                                    <label class="form-check-label" for="enable_lime">
+                                        Enable LIME Explainability (Fallback)
+                                    </label>
+                                    <div class="form-text text-muted">
+                                        Use LIME as a fallback explainability method if SHAP fails.
+                                    </div>
+                                </div>
+                                
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" id="enable_reweighing" name="enable_reweighing" value="true" checked>
+                                    <label class="form-check-label" for="enable_reweighing">
+                                        Enable Reweighing Mitigation
+                                    </label>
+                                    <div class="form-text text-muted">
+                                        Analyze how reweighing techniques could reduce bias in your model.
+                                    </div>
+                                </div>
+                                
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="enable_intersectional" name="enable_intersectional" value="true" checked>
+                                    <label class="form-check-label" for="enable_intersectional">
+                                        Enable Intersectional Analysis
+                                    </label>
+                                    <div class="form-text text-muted">
+                                        Analyze how bias affects individuals belonging to multiple protected groups.
+                                    </div>
+                                </div>
+                                
+                                <div class="alert alert-info mt-4">
+                                    <h6><i class="fas fa-info-circle"></i> Model File</h6>
+                                    {% if model.file_path %}
+                                        <p class="mb-0">A model file is available and will be loaded for analysis. This enables additional capabilities like explainability and performance metrics.</p>
+                                    {% else %}
+                                        <p class="mb-0">No model file is available. Analysis will be limited to dataset-based fairness metrics only.</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-4">
+                    <button type="submit" class="btn btn-primary" id="analyze-button">
+                        <i class="fas fa-chart-bar"></i> Analyze for Bias
+                    </button>
+                    <div class="form-text mt-2">
+                        <i class="fas fa-info-circle"></i> Analysis may take a few moments to complete, especially for large datasets.
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Set up form handling
+        const analyzeForm = document.getElementById('analyze-model-form');
+        if (analyzeForm) {
+            analyzeForm.addEventListener('submit', function(e) {
+                // Validation
+                const testDataset = document.getElementById('test_dataset');
+                const biasTypes = document.querySelectorAll('input[name="bias_types"]:checked');
+                
+                if (!testDataset || !testDataset.files || testDataset.files.length === 0) {
+                    e.preventDefault();
+                    alert('Please upload a test dataset');
+                    return false;
+                }
+                
+                if (biasTypes.length === 0) {
+                    e.preventDefault();
+                    alert('Please select at least one bias type to analyze');
+                    return false;
+                }
+                
+                // Disable the button to prevent multiple submissions
+                const analyzeButton = document.getElementById('analyze-button');
+                if (analyzeButton) {
+                    analyzeButton.disabled = true;
+                    analyzeButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Analyzing... (Please wait, this may take a minute)';
+                }
+                
+                // Allow the form to submit normally (not using AJAX)
+                return true;
+            });
+        }
+    });
+
+    function addCustomBiasType() {
+        const customBiasType = document.getElementById('custom_bias_type').value.trim();
+        if (!customBiasType) return;
+        
+        // Create a unique id for the checkbox
+        const id = 'bias_' + customBiasType.replace(/\s+/g, '_').toLowerCase();
+        
+        // Check if this bias type already exists
+        if (document.getElementById(id)) {
+            alert('This bias type has already been added');
+            return;
+        }
+        
+        // Create the custom bias type checkbox
+        const container = document.getElementById('custom_bias_types');
+        const div = document.createElement('div');
+        div.className = 'form-check';
+        div.innerHTML = `
+            <input class="form-check-input" type="checkbox" name="bias_types" value="${customBiasType}" id="${id}" checked>
+            <label class="form-check-label" for="${id}">${customBiasType}</label>
+        `;
+        
+        container.appendChild(div);
+        document.getElementById('custom_bias_type').value = '';
+    }
+</script>
+{% endblock %} 

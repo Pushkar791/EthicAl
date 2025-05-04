@@ -1,0 +1,294 @@
+/* EthicAI - Enterprise AI Responsibility Suite Styles */
+
+/* Global Styles */
+:root {
+    --primary-color: #4e73df;
+    --secondary-color: #2c9faf;
+    --success-color: #1cc88a;
+    --danger-color: #e74a3b;
+    --warning-color: #f6c23e;
+    --info-color: #36b9cc;
+    --dark-color: #5a5c69;
+    --light-color: #f8f9fc;
+}
+
+body {
+    font-family: 'Nunito', 'Segoe UI', Roboto, Arial, sans-serif;
+    background-color: #f8f9fc;
+    color: #333;
+}
+
+a {
+    color: var(--primary-color);
+    text-decoration: none;
+}
+
+a:hover {
+    color: #2e59d9;
+}
+
+/* Custom Components */
+.card {
+    border: none;
+    box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 0.5rem 2rem 0 rgba(58, 59, 69, 0.2);
+}
+
+.card-header {
+    background-color: white;
+    border-bottom: 1px solid #e3e6f0;
+}
+
+/* Navbar Customization */
+.navbar-brand {
+    font-weight: 800;
+}
+
+.navbar-dark .navbar-brand {
+    color: white;
+}
+
+/* Dashboard Styling */
+.dashboard-stat-card {
+    border-left: 4px solid var(--primary-color);
+}
+
+.dashboard-stat-card.stat-primary {
+    border-color: var(--primary-color);
+}
+
+.dashboard-stat-card.stat-success {
+    border-color: var(--success-color);
+}
+
+.dashboard-stat-card.stat-info {
+    border-color: var(--info-color);
+}
+
+.dashboard-stat-card.stat-warning {
+    border-color: var(--warning-color);
+}
+
+.dashboard-stat-card.stat-danger {
+    border-color: var(--danger-color);
+}
+
+/* Learning Module Styling */
+.course-card {
+    height: 100%;
+}
+
+.course-card .card-img-top {
+    height: 160px;
+    object-fit: cover;
+}
+
+.lesson-progress {
+    height: 8px;
+    border-radius: 4px;
+}
+
+/* Governance Module Styling */
+.compliance-progress {
+    height: 10px;
+}
+
+.risk-badge {
+    font-size: 0.75rem;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.risk-high {
+    background-color: var(--danger-color);
+    color: white;
+}
+
+.risk-medium {
+    background-color: var(--warning-color);
+    color: white;
+}
+
+.risk-low {
+    background-color: var(--success-color);
+    color: white;
+}
+
+.audit-timeline {
+    position: relative;
+    padding-left: 30px;
+}
+
+.audit-timeline::before {
+    content: '';
+    position: absolute;
+    left: 15px;
+    top: 0;
+    height: 100%;
+    width: 2px;
+    background-color: #e3e6f0;
+}
+
+.audit-item {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.audit-item::before {
+    content: '';
+    position: absolute;
+    left: -30px;
+    top: 5px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background-color: var(--primary-color);
+}
+
+/* Bias Analyzer Styling */
+.bias-chart-container {
+    height: 300px;
+}
+
+.bias-score {
+    font-size: 2.5rem;
+    font-weight: bold;
+}
+
+.recommendation-card {
+    border-left: 4px solid var(--info-color);
+}
+
+.recommendation-high {
+    border-color: var(--danger-color);
+}
+
+.recommendation-medium {
+    border-color: var(--warning-color);
+}
+
+.recommendation-low {
+    border-color: var(--success-color);
+}
+
+/* Virtual Assistant Styling */
+.chat-container {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.chat-message {
+    margin-bottom: 15px;
+    padding: 10px 15px;
+    border-radius: 10px;
+    max-width: 80%;
+}
+
+.chat-user {
+    background-color: #e3e6f0;
+    margin-left: auto;
+    border-bottom-right-radius: 0;
+}
+
+.chat-assistant {
+    background-color: var(--primary-color);
+    color: white;
+    margin-right: auto;
+    border-bottom-left-radius: 0;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .jumbotron h1 {
+        font-size: 2.5rem;
+    }
+}
+
+/* Animation effects */
+.fade-in {
+    animation: fadeIn 0.5s;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Certificate styling */
+.certificate {
+    border: 15px solid #333;
+    background-color: #fff;
+    padding: 30px;
+    position: relative;
+    font-family: 'Times New Roman', Times, serif;
+}
+
+.certificate::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border: 2px solid #eee;
+    pointer-events: none;
+}
+
+.certificate h1 {
+    font-size: 48px;
+    color: #1a3a8f;
+    text-align: center;
+    margin-bottom: 20px;
+    font-family: 'Pinyon Script', cursive, 'Times New Roman', Times, serif;
+}
+
+.certificate .logo {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.certificate .certification-text {
+    font-size: 24px;
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.certificate .recipient-name {
+    font-size: 36px;
+    font-weight: bold;
+    text-align: center;
+    color: #1a3a8f;
+    margin-bottom: 30px;
+    font-family: 'Pinyon Script', cursive, 'Times New Roman', Times, serif;
+}
+
+.certificate .completion-text {
+    font-size: 18px;
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.certificate .signatures {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 50px;
+}
+
+.certificate .signature {
+    text-align: center;
+}
+
+.certificate .signature-line {
+    width: 200px;
+    border-top: 1px solid #000;
+    margin: 0 auto;
+}
+
+.certificate .signature-name {
+    margin-top: 5px;
+} 

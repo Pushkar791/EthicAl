@@ -1,0 +1,354 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1>{{ title }}</h1>
+            <p class="text-muted">{{ model.name }} (v{{ model.version }})</p>
+            <p>Report generated: {{ report.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
+            <div id="report-id" data-report-id="{{ report.id }}" style="display: none;"></div>
+        </div>
+        <div>
+            <a href="{{ url_for('bias_analyzer.view_model', model_id=model.id) }}" class="btn btn-outline-primary">
+                <i class="fas fa-arrow-left"></i> Back to Model
+            </a>
+            <button class="btn btn-primary" onclick="exportRecommendations({{ report.id }})">
+                <i class="fas fa-download"></i> Export Recommendations
+            </button>
+            <form method="post" action="{{ url_for('bias_analyzer.delete_report', report_id=report.id) }}" class="d-inline">
+                <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete this report?')">
+                    <i class="fas fa-trash"></i> Delete Report
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Bias Types Analyzed</h5>
+                    <p class="card-text">
+                        {% for bias_type in report.report_type.split(',') %}
+                            <span class="badge bg-primary">{{ bias_type }}</span>
+                        {% endfor %}
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">High Priority Issues</h5>
+                    <p class="card-text fs-1 text-center">
+                        {{ recommendations|selectattr('priority', 'eq', 'high')|list|length }}
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Overall Fairness Score</h5>
+                    <p class="card-text fs-1 text-center">
+                        {% set total_bias = 0 %}
+                        {% for bias_type, result in report.results.items() %}
+                            {% set total_bias = total_bias + result.bias_score|float %}
+                        {% endfor %}
+                        {% set avg_bias = total_bias / report.results|length %}
+                        {% set fairness_score = 100 - avg_bias %}
+                        {{ fairness_score|round|int }}/100
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabs for different visualizations -->
+    <ul class="nav nav-tabs" id="reportTabs" role="tablist">
+        <li class="nav-item">
+            <a class="nav-link active" id="results-tab" data-bs-toggle="tab" href="#results" role="tab">
+                Bias Results
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" id="visualizations-tab" data-bs-toggle="tab" href="#visualizations" role="tab">
+                Visualizations
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" id="intersectional-tab" data-bs-toggle="tab" href="#intersectional" role="tab">
+                Intersectional Analysis
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" id="explainability-tab" data-bs-toggle="tab" href="#explainability" role="tab">
+                Explainability
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" id="recommendations-tab" data-bs-toggle="tab" href="#recommendations" role="tab">
+                Recommendations
+            </a>
+        </li>
+    </ul>
+
+    <div class="tab-content p-3 border border-top-0 rounded-bottom">
+        <!-- Bias Results Tab -->
+        <div class="tab-pane fade show active" id="results" role="tabpanel">
+            {% for bias_type, result in report.results.items() %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h4>{{ bias_type|capitalize }} Bias Analysis</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="text-center">
+                                <h5>Bias Score</h5>
+                                {% if result.bias_score < 10 %}
+                                    <div class="display-4 text-success">{{ result.bias_score|round(1) }}%</div>
+                                    <p>Low Bias</p>
+                                {% elif result.bias_score < 20 %}
+                                    <div class="display-4 text-warning">{{ result.bias_score|round(1) }}%</div>
+                                    <p>Medium Bias</p>
+                                {% else %}
+                                    <div class="display-4 text-danger">{{ result.bias_score|round(1) }}%</div>
+                                    <p>High Bias</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <h5>Fairness Metrics</h5>
+                            <ul class="list-group">
+                                {% if result.disparate_impact is defined %}
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    Disparate Impact
+                                    <span class="badge bg-primary rounded-pill">{{ result.disparate_impact|round(3) }}</span>
+                                </li>
+                                {% endif %}
+                                {% if result.statistical_parity_difference is defined %}
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    Statistical Parity Difference
+                                    <span class="badge bg-primary rounded-pill">{{ result.statistical_parity_difference|round(3) }}</span>
+                                </li>
+                                {% endif %}
+                                {% if result.mitigated_disparate_impact is defined %}
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    Mitigated Disparate Impact
+                                    <span class="badge bg-success rounded-pill">{{ result.mitigated_disparate_impact|round(3) }}</span>
+                                </li>
+                                {% endif %}
+                                {% if result.improvement is defined %}
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    Potential Improvement
+                                    <span class="badge bg-success rounded-pill">{{ (result.improvement * 100)|round(1) }}%</span>
+                                </li>
+                                {% endif %}
+                            </ul>
+                        </div>
+                        <div class="col-md-4">
+                            <h5>Group Distribution</h5>
+                            <ul class="list-group">
+                                {% for group, distribution in result.distributions.items() %}
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    {{ group }}
+                                    <div class="progress" style="width: 60%;">
+                                        <div class="progress-bar" role="progressbar" style="width: {{ (distribution * 100)|round|int }}%;">
+                                            {{ (distribution * 100)|round|int }}%
+                                        </div>
+                                    </div>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Visualizations Tab -->
+        <div class="tab-pane fade" id="visualizations" role="tabpanel">
+            <div class="row">
+                {% for bias_type in report.report_type.split(',') %}
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100">
+                        <div class="card-header">
+                            <h5>{{ bias_type|capitalize }} Demographic Parity</h5>
+                        </div>
+                        <div class="card-body">
+                            {% if report.visualizations and report.visualizations[bias_type + '_demographic_parity'] %}
+                            <canvas 
+                                id="{{ bias_type }}-demographic-parity-chart" 
+                                data-chart-data='{{ report.visualizations[bias_type + "_demographic_parity"]|tojson }}' 
+                                style="width: 100%; height: 300px;">
+                            </canvas>
+                            {% else %}
+                            <p class="text-center text-muted">No demographic parity data available</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100">
+                        <div class="card-header">
+                            <h5>{{ bias_type|capitalize }} ROC Curve</h5>
+                        </div>
+                        <div class="card-body">
+                            {% if report.visualizations and report.visualizations[bias_type + '_roc_curve'] %}
+                            <canvas 
+                                id="{{ bias_type }}-roc-curve-chart" 
+                                data-chart-data='{{ report.visualizations[bias_type + "_roc_curve"]|tojson }}' 
+                                style="width: 100%; height: 300px;">
+                            </canvas>
+                            {% else %}
+                            <p class="text-center text-muted">No ROC curve data available</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Intersectional Analysis Tab -->
+        <div class="tab-pane fade" id="intersectional" role="tabpanel">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Intersectional Bias Heatmap</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted mb-3">
+                        This heatmap shows how bias varies across intersections of different protected attributes.
+                        Darker colors indicate higher levels of bias.
+                    </p>
+                    <div style="height: 400px;">
+                        <canvas id="bias-heatmap-chart" style="width: 100%; height: 100%;"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Model Explainability Tab -->
+        <div class="tab-pane fade" id="explainability" role="tabpanel">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Model Explainability</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted mb-3">
+                        These visualizations explain which features contribute most to model predictions and potential bias.
+                    </p>
+                    
+                    <div class="row">
+                        {% for bias_type in report.report_type.split(',') %}
+                            {% if report.explainability and (report.explainability[bias_type + '_shap'] or report.explainability[bias_type + '_lime']) %}
+                                <div class="col-md-6 mb-4">
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h6>{{ bias_type|capitalize }} Feature Importance</h6>
+                                        </div>
+                                        <div class="card-body text-center">
+                                            {% if report.explainability[bias_type + '_shap'] %}
+                                                <img 
+                                                    src="data:image/png;base64,{{ report.explainability[bias_type + '_shap'] }}" 
+                                                    alt="SHAP values for {{ bias_type }}" 
+                                                    class="img-fluid explainability-image" 
+                                                    style="max-height: 300px; cursor: pointer;">
+                                                <p class="mt-2"><small>SHAP feature importance (click to enlarge)</small></p>
+                                            {% elif report.explainability[bias_type + '_lime'] %}
+                                                <img 
+                                                    src="data:image/png;base64,{{ report.explainability[bias_type + '_lime'] }}" 
+                                                    alt="LIME explanation for {{ bias_type }}" 
+                                                    class="img-fluid explainability-image" 
+                                                    style="max-height: 300px; cursor: pointer;">
+                                                <p class="mt-2"><small>LIME explanation (click to enlarge)</small></p>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            {% else %}
+                                <div class="col-md-6 mb-4">
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h6>{{ bias_type|capitalize }} Feature Importance</h6>
+                                        </div>
+                                        <div class="card-body text-center">
+                                            <p class="text-muted">
+                                                No explainability data available for this bias type.
+                                                <br>Either the model file wasn't available or explainability analysis failed.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recommendations Tab -->
+        <div class="tab-pane fade" id="recommendations" role="tabpanel">
+            {% for recommendation in recommendations %}
+            <div class="card mb-3">
+                <div class="card-header d-flex justify-content-between align-items-center
+                    {% if recommendation.priority == 'high' %}
+                        bg-danger text-white
+                    {% elif recommendation.priority == 'medium' %}
+                        bg-warning
+                    {% else %}
+                        bg-success text-white
+                    {% endif %}
+                ">
+                    <h5 class="mb-0">{{ recommendation.title }}</h5>
+                    <span class="badge bg-light text-dark">{{ recommendation.priority|capitalize }} Priority</span>
+                </div>
+                <div class="card-body">
+                    <p>{{ recommendation.description }}</p>
+                    
+                    {% if recommendation.action_items %}
+                    <h6>Recommended Actions:</h6>
+                    <ul class="list-group">
+                        {% for action in recommendation.action_items %}
+                        <li class="list-group-item">{{ action }}</li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Explainability Image Modal -->
+<div class="modal fade" id="explainabilityModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="explainabilityModalTitle"></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center">
+                <img src="" id="explainabilityModalImg" class="img-fluid">
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
+<!-- Chart.js Matrix plugin for heatmap -->
+<script src="https://cdn.jsdelivr.net/npm/chartjs-chart-matrix@1.1.1/dist/chartjs-chart-matrix.min.js"></script>
+<!-- Custom visualization JS -->
+<script src="{{ url_for('static', filename='js/bias_visualizations.js') }}"></script>
+{% endblock %} 

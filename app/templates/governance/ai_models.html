@@ -1,0 +1,252 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-lg-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('governance.index') }}">Governance</a></li>
+                    <li class="breadcrumb-item active">AI Models</li>
+                </ol>
+            </nav>
+            
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h2 mb-0">AI Models</h1>
+                <a href="{{ url_for('governance.add_ai_model') }}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle me-1"></i> Add New Model
+                </a>
+            </div>
+            
+            <div class="card">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        {% if ai_models %}
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Version</th>
+                                    <th>Type</th>
+                                    <th>Risk Level</th>
+                                    <th>Owner</th>
+                                    <th>Team</th>
+                                    <th>Created</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for model in ai_models %}
+                                <tr>
+                                    <td>
+                                        <a href="{{ url_for('governance.ai_model', model_id=model.id) }}">{{ model.name }}</a>
+                                    </td>
+                                    <td>{{ model.version }}</td>
+                                    <td>
+                                        <span class="badge {% if model.model_type == 'classification' %}bg-info{% elif model.model_type == 'regression' %}bg-success{% elif model.model_type == 'clustering' %}bg-warning{% elif model.model_type == 'nlp' %}bg-primary{% elif model.model_type == 'vision' %}bg-dark{% else %}bg-secondary{% endif %}">
+                                            {{ model.model_type }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge {% if model.risk_level == 'low' %}bg-success{% elif model.risk_level == 'medium' %}bg-warning{% elif model.risk_level == 'high' %}bg-danger{% else %}bg-secondary{% endif %}">
+                                            {{ model.risk_level }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if model.owner %}
+                                            {{ model.owner.username }}
+                                        {% else %}
+                                            Unknown
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if model.team %}
+                                            {{ model.team.name }}
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ model.created_at.strftime('%Y-%m-%d') }}</td>
+                                    <td>
+                                        <div class="btn-group">
+                                            <a href="{{ url_for('governance.ai_model', model_id=model.id) }}" class="btn btn-sm btn-outline-primary">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                            <a href="{{ url_for('governance.update_ai_model', model_id=model.id) }}" class="btn btn-sm btn-outline-secondary">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                            <a href="{{ url_for('bias_analyzer.analyze_model', model_id=model.id) }}" class="btn btn-sm btn-outline-warning">
+                                                <i class="bi bi-search"></i> Analyze
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                        {% else %}
+                        <div class="text-center py-5">
+                            <i class="bi bi-robot display-1 text-muted"></i>
+                            <h5 class="mt-3">No AI models registered yet</h5>
+                            <p class="text-muted">Start by adding your first AI model to track and govern it.</p>
+                            <a href="{{ url_for('governance.add_ai_model') }}" class="btn btn-primary mt-2">
+                                <i class="bi bi-plus-circle me-1"></i> Add First Model
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card mt-4">
+                <div class="card-header bg-light">
+                    <h5 class="card-title m-0">Filter and Search</h5>
+                </div>
+                <div class="card-body">
+                    <form id="modelFilterForm" class="row g-3">
+                        <div class="col-md-3">
+                            <label for="modelTypeFilter" class="form-label">Model Type</label>
+                            <select class="form-select" id="modelTypeFilter">
+                                <option value="">All Types</option>
+                                <option value="classification">Classification</option>
+                                <option value="regression">Regression</option>
+                                <option value="clustering">Clustering</option>
+                                <option value="nlp">Natural Language Processing</option>
+                                <option value="vision">Computer Vision</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="riskLevelFilter" class="form-label">Risk Level</label>
+                            <select class="form-select" id="riskLevelFilter">
+                                <option value="">All Risk Levels</option>
+                                <option value="low">Low</option>
+                                <option value="medium">Medium</option>
+                                <option value="high">High</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="teamFilter" class="form-label">Team</label>
+                            <select class="form-select" id="teamFilter">
+                                <option value="">All Teams</option>
+                                {% for team in current_user.teams %}
+                                <option value="{{ team.id }}">{{ team.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="searchInput" class="form-label">Search</label>
+                            <input type="text" class="form-control" id="searchInput" placeholder="Model name...">
+                        </div>
+                        <div class="col-12 text-end">
+                            <button type="submit" class="btn btn-primary">Apply Filters</button>
+                            <button type="reset" class="btn btn-outline-secondary">Reset</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="d-flex justify-content-between mt-4">
+                <a href="{{ url_for('governance.index') }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Back to Governance
+                </a>
+                <div>
+                    <button type="button" class="btn btn-outline-primary me-2" id="exportBtn">
+                        <i class="bi bi-download"></i> Export Models
+                    </button>
+                    <a href="{{ url_for('governance.add_ai_model') }}" class="btn btn-primary">
+                        <i class="bi bi-plus-circle"></i> Add New Model
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const modelFilterForm = document.getElementById('modelFilterForm');
+        const modelTypeFilter = document.getElementById('modelTypeFilter');
+        const riskLevelFilter = document.getElementById('riskLevelFilter');
+        const teamFilter = document.getElementById('teamFilter');
+        const searchInput = document.getElementById('searchInput');
+        const exportBtn = document.getElementById('exportBtn');
+        
+        // Add filter functionality
+        modelFilterForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            filterModels();
+        });
+        
+        // Reset button
+        modelFilterForm.addEventListener('reset', function() {
+            setTimeout(function() {
+                filterModels();
+            }, 10);
+        });
+        
+        // Filter models function
+        function filterModels() {
+            const modelType = modelTypeFilter.value.toLowerCase();
+            const riskLevel = riskLevelFilter.value.toLowerCase();
+            const team = teamFilter.value;
+            const searchTerm = searchInput.value.toLowerCase();
+            
+            const tableRows = document.querySelectorAll('tbody tr');
+            
+            tableRows.forEach(row => {
+                const name = row.cells[0].textContent.toLowerCase();
+                const type = row.cells[2].textContent.trim().toLowerCase();
+                const risk = row.cells[3].textContent.trim().toLowerCase();
+                const teamName = row.cells[5].textContent.trim();
+                
+                // Apply filters
+                let showRow = true;
+                
+                if (modelType && type !== modelType) showRow = false;
+                if (riskLevel && risk !== riskLevel) showRow = false;
+                if (team && !teamName.includes(team)) showRow = false;
+                if (searchTerm && !name.includes(searchTerm)) showRow = false;
+                
+                row.style.display = showRow ? '' : 'none';
+            });
+        }
+        
+        // Export functionality
+        exportBtn.addEventListener('click', function() {
+            // Simple CSV export of visible table data
+            let csvContent = "data:text/csv;charset=utf-8,";
+            
+            // Add header
+            csvContent += "Name,Version,Type,Risk Level,Owner,Team,Created\n";
+            
+            // Add rows
+            const tableRows = document.querySelectorAll('tbody tr');
+            tableRows.forEach(row => {
+                if (row.style.display !== 'none') {
+                    const name = row.cells[0].textContent.trim();
+                    const version = row.cells[1].textContent.trim();
+                    const type = row.cells[2].textContent.trim();
+                    const risk = row.cells[3].textContent.trim();
+                    const owner = row.cells[4].textContent.trim();
+                    const team = row.cells[5].textContent.trim();
+                    const created = row.cells[6].textContent.trim();
+                    
+                    csvContent += `"${name}","${version}","${type}","${risk}","${owner}","${team}","${created}"\n`;
+                }
+            });
+            
+            // Create download link and click it
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "ai_models.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        });
+    });
+</script>
+{% endblock %} 

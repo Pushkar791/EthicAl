@@ -1,0 +1,251 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1 class="h2 mb-4">Admin Dashboard</h1>
+
+<div class="row mb-4">
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card dashboard-stat-card stat-primary h-100 py-2">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total Users</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">24</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-people fs-2 text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card dashboard-stat-card stat-success h-100 py-2">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">AI Models</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">15</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-cpu fs-2 text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card dashboard-stat-card stat-info h-100 py-2">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Compliance Frameworks</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">5</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-shield-check fs-2 text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card dashboard-stat-card stat-warning h-100 py-2">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Policy Documents</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">12</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-file-earmark-text fs-2 text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-lg-6">
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="m-0 font-weight-bold">User Management</h5>
+                <a href="#" class="btn btn-sm btn-primary">Add User</a>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Username</th>
+                                <th>Email</th>
+                                <th>Role</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>johndoe</td>
+                                <td>john@example.com</td>
+                                <td>Developer</td>
+                                <td><span class="badge bg-success">Active</span></td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary">Edit</button>
+                                    <button class="btn btn-sm btn-outline-danger">Deactivate</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>janedoe</td>
+                                <td>jane@example.com</td>
+                                <td>Manager</td>
+                                <td><span class="badge bg-success">Active</span></td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary">Edit</button>
+                                    <button class="btn btn-sm btn-outline-danger">Deactivate</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>bobsmith</td>
+                                <td>bob@example.com</td>
+                                <td>HR</td>
+                                <td><span class="badge bg-secondary">Inactive</span></td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary">Edit</button>
+                                    <button class="btn btn-sm btn-outline-success">Activate</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="m-0 font-weight-bold">System Health</h5>
+            </div>
+            <div class="card-body">
+                <h6 class="mb-3">Database Status</h6>
+                <div class="progress mb-4" style="height: 25px;">
+                    <div class="progress-bar bg-success" role="progressbar" style="width: 42%;" aria-valuenow="42" aria-valuemin="0" aria-valuemax="100">
+                        <span>Database Usage: 42%</span>
+                    </div>
+                </div>
+                
+                <h6 class="mb-3">API Health</h6>
+                <div class="d-flex justify-content-between mb-1">
+                    <span>Learning Hub API</span>
+                    <span class="text-success">Healthy</span>
+                </div>
+                <div class="d-flex justify-content-between mb-1">
+                    <span>Governance API</span>
+                    <span class="text-success">Healthy</span>
+                </div>
+                <div class="d-flex justify-content-between mb-1">
+                    <span>Bias Analyzer API</span>
+                    <span class="text-success">Healthy</span>
+                </div>
+                <div class="d-flex justify-content-between mb-1">
+                    <span>Virtual Assistant API</span>
+                    <span class="text-warning">Degraded</span>
+                </div>
+                
+                <a href="#" class="btn btn-sm btn-primary w-100 mt-3">View Detailed Metrics</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="m-0 font-weight-bold">Recent Activity</h5>
+            </div>
+            <div class="card-body">
+                <div class="audit-timeline">
+                    <div class="audit-item">
+                        <div class="small text-gray-500">Today, 10:30 AM</div>
+                        <div>User <strong>johndoe</strong> uploaded a new model: <strong>Customer Segmentation v2.1</strong></div>
+                    </div>
+                    <div class="audit-item">
+                        <div class="small text-gray-500">Today, 9:15 AM</div>
+                        <div>User <strong>janedoe</strong> updated compliance status for <strong>Loan Approval Model</strong></div>
+                    </div>
+                    <div class="audit-item">
+                        <div class="small text-gray-500">Yesterday, 4:30 PM</div>
+                        <div>User <strong>admin</strong> created a new policy document: <strong>AI Auditing Guidelines</strong></div>
+                    </div>
+                    <div class="audit-item">
+                        <div class="small text-gray-500">Yesterday, 1:45 PM</div>
+                        <div>User <strong>michaelj</strong> ran bias analysis on <strong>HR Recruitment Model</strong></div>
+                    </div>
+                    <div class="audit-item">
+                        <div class="small text-gray-500">Yesterday, 11:20 AM</div>
+                        <div>System scheduled maintenance completed</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="m-0 font-weight-bold">Compliance Overview</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="compliance-chart"></canvas>
+                <div class="mt-4 text-center small">
+                    <span class="mr-2">
+                        <i class="bi bi-circle-fill text-primary"></i> GDPR
+                    </span>
+                    <span class="mr-2">
+                        <i class="bi bi-circle-fill text-success"></i> IEEE
+                    </span>
+                    <span class="mr-2">
+                        <i class="bi bi-circle-fill text-info"></i> NIST
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Initialize compliance chart
+    document.addEventListener('DOMContentLoaded', function() {
+        const complianceCanvas = document.getElementById('compliance-chart');
+        if (complianceCanvas) {
+            const complianceChart = new Chart(complianceCanvas, {
+                type: 'doughnut',
+                data: {
+                    labels: ['GDPR', 'IEEE', 'NIST', 'ISO', 'Custom'],
+                    datasets: [{
+                        data: [85, 72, 90, 65, 78],
+                        backgroundColor: [
+                            'rgba(78, 115, 223, 0.8)',
+                            'rgba(28, 200, 138, 0.8)',
+                            'rgba(54, 185, 204, 0.8)',
+                            'rgba(246, 194, 62, 0.8)',
+                            'rgba(231, 74, 59, 0.8)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+        }
+    });
+</script>
+{% endblock %} 

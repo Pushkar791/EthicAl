@@ -1,0 +1,325 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-lg-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('governance.index') }}">Governance</a></li>
+                    <li class="breadcrumb-item"><a href="{{ url_for('governance.ai_models') }}">AI Models</a></li>
+                    <li class="breadcrumb-item active">{{ model.name }}</li>
+                </ol>
+            </nav>
+            
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="h2 mb-1">{{ model.name }}</h1>
+                    <p class="text-muted">
+                        <span class="badge {% if model.model_type == 'classification' %}bg-info{% elif model.model_type == 'regression' %}bg-success{% elif model.model_type == 'clustering' %}bg-warning{% elif model.model_type == 'nlp' %}bg-primary{% elif model.model_type == 'vision' %}bg-dark{% else %}bg-secondary{% endif %}">
+                            {{ model.model_type }}
+                        </span>
+                        <span class="badge {% if model.risk_level == 'low' %}bg-success{% elif model.risk_level == 'medium' %}bg-warning{% elif model.risk_level == 'high' %}bg-danger{% else %}bg-secondary{% endif %} ms-1">
+                            {{ model.risk_level }} risk
+                        </span>
+                        <span class="ms-2">Version: {{ model.version }}</span>
+                    </p>
+                </div>
+                <div class="d-flex">
+                    <a href="{{ url_for('governance.update_ai_model', model_id=model.id) }}" class="btn btn-outline-primary me-2">
+                        <i class="bi bi-pencil"></i> Edit
+                    </a>
+                    <a href="{{ url_for('bias_analyzer.analyze_model', model_id=model.id) }}" class="btn btn-warning">
+                        <i class="bi bi-search"></i> Analyze Bias
+                    </a>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-lg-8">
+                    <!-- Model Overview -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="card-title m-0">Model Overview</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6 class="text-muted mb-3">General Information</h6>
+                                    <dl class="row mb-0">
+                                        <dt class="col-sm-4">Owner</dt>
+                                        <dd class="col-sm-8">{{ model.owner.username if model.owner else 'Unknown' }}</dd>
+                                        
+                                        <dt class="col-sm-4">Team</dt>
+                                        <dd class="col-sm-8">{{ model.team.name if model.team else 'None' }}</dd>
+                                        
+                                        <dt class="col-sm-4">Created</dt>
+                                        <dd class="col-sm-8">{{ model.created_at.strftime('%Y-%m-%d') }}</dd>
+                                        
+                                        <dt class="col-sm-4">Last Updated</dt>
+                                        <dd class="col-sm-8">{{ model.updated_at.strftime('%Y-%m-%d') if model.updated_at else 'Never' }}</dd>
+                                    </dl>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6 class="text-muted mb-3">Technical Details</h6>
+                                    <dl class="row mb-0">
+                                        <dt class="col-sm-4">Model Type</dt>
+                                        <dd class="col-sm-8">{{ model.model_type }}</dd>
+                                        
+                                        <dt class="col-sm-4">Risk Level</dt>
+                                        <dd class="col-sm-8">{{ model.risk_level }}</dd>
+                                        
+                                        <dt class="col-sm-4">API Endpoint</dt>
+                                        <dd class="col-sm-8">
+                                            {% if model.api_endpoint %}
+                                                <code>{{ model.api_endpoint }}</code>
+                                            {% else %}
+                                                Not available
+                                            {% endif %}
+                                        </dd>
+                                        
+                                        <dt class="col-sm-4">File Path</dt>
+                                        <dd class="col-sm-8">
+                                            {% if model.file_path %}
+                                                <code>{{ model.file_path }}</code>
+                                            {% else %}
+                                                Not available
+                                            {% endif %}
+                                        </dd>
+                                    </dl>
+                                </div>
+                            </div>
+                            
+                            <hr class="my-4">
+                            
+                            <h6 class="text-muted mb-3">Description</h6>
+                            <p>{{ model.description if model.description else 'No description provided.' }}</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Audit Logs -->
+                    <div class="card mb-4">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="card-title m-0">Audit Trail</h5>
+                            <button class="btn btn-sm btn-outline-secondary" id="exportAuditBtn">
+                                <i class="bi bi-download"></i> Export
+                            </button>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-hover mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>Timestamp</th>
+                                            <th>Action</th>
+                                            <th>User</th>
+                                            <th>Details</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% if audit_logs %}
+                                            {% for log in audit_logs %}
+                                            <tr>
+                                                <td>{{ log.timestamp.strftime('%Y-%m-%d %H:%M') }}</td>
+                                                <td>
+                                                    <span class="badge {% if log.action == 'create' %}bg-success{% elif log.action == 'update' %}bg-primary{% elif log.action == 'delete' %}bg-danger{% elif log.action == 'upload' %}bg-info{% elif log.action == 'bias_analysis' %}bg-warning{% else %}bg-secondary{% endif %}">
+                                                        {{ log.action }}
+                                                    </span>
+                                                </td>
+                                                <td>{{ log.user.username if log.user else 'System' }}</td>
+                                                <td>{{ log.details }}</td>
+                                            </tr>
+                                            {% endfor %}
+                                        {% else %}
+                                            <tr>
+                                                <td colspan="4" class="text-center py-3">No audit logs available</td>
+                                            </tr>
+                                        {% endif %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-lg-4">
+                    <!-- Compliance Status -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="card-title m-0">Compliance Status</h5>
+                        </div>
+                        <div class="card-body">
+                            {% if compliance_statuses %}
+                                {% for framework_name, compliance_data in compliance_statuses.items() %}
+                                <div class="mb-4">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <h6>{{ framework_name }}</h6>
+                                        <span class="badge {% if compliance_data.percentage >= 80 %}bg-success{% elif compliance_data.percentage >= 50 %}bg-warning{% else %}bg-danger{% endif %}">
+                                            {{ compliance_data.percentage|int }}%
+                                        </span>
+                                    </div>
+                                    <div class="progress mt-2" style="height: 8px;">
+                                        <div class="progress-bar {% if compliance_data.percentage >= 80 %}bg-success{% elif compliance_data.percentage >= 50 %}bg-warning{% else %}bg-danger{% endif %}" role="progressbar" style="width: {{ compliance_data.percentage }}%;" aria-valuenow="{{ compliance_data.percentage }}" aria-valuemin="0" aria-valuemax="100"></div>
+                                    </div>
+                                    <div class="mt-3">
+                                        <a href="{{ url_for('governance.model_compliance', model_id=model.id, framework_id=compliance_data.statuses[0].requirement.framework_id) }}" class="btn btn-sm btn-outline-primary">
+                                            View Requirements
+                                        </a>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            {% else %}
+                                <div class="text-center py-4">
+                                    <i class="bi bi-shield-exclamation display-4 text-muted"></i>
+                                    <p class="mt-3 mb-0">No compliance frameworks applied yet</p>
+                                    <div class="mt-3">
+                                        <a href="{{ url_for('governance.compliance_frameworks') }}" class="btn btn-outline-primary btn-sm">
+                                            View Frameworks
+                                        </a>
+                                    </div>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Risk Assessment -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="card-title m-0">Risk Assessment</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-flex justify-content-center mb-3">
+                                <div style="width: 120px; height: 120px;" class="position-relative">
+                                    <svg viewBox="0 0 36 36" class="position-absolute top-0 start-0" width="100%" height="100%">
+                                        <path
+                                            d="M18 2.0845
+                                            a 15.9155 15.9155 0 0 1 0 31.831
+                                            a 15.9155 15.9155 0 0 1 0 -31.831"
+                                            fill="none"
+                                            stroke="#eee"
+                                            stroke-width="3"
+                                        />
+                                        <path
+                                            d="M18 2.0845
+                                            a 15.9155 15.9155 0 0 1 0 31.831
+                                            a 15.9155 15.9155 0 0 1 0 -31.831"
+                                            fill="none"
+                                            stroke="{% if model.risk_level == 'low' %}#28a745{% elif model.risk_level == 'medium' %}#ffc107{% else %}#dc3545{% endif %}"
+                                            stroke-width="3"
+                                            stroke-dasharray="{% if model.risk_level == 'low' %}30{% elif model.risk_level == 'medium' %}60{% else %}90{% endif %}, 100"
+                                        />
+                                    </svg>
+                                    <div class="position-absolute top-50 start-50 translate-middle text-center">
+                                        <div class="h3 mb-0 fw-bold">{{ model.risk_level|capitalize }}</div>
+                                        <div class="small text-muted">Risk</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <h6 class="mb-2">Risk Factors</h6>
+                                <ul class="list-unstyled mb-0">
+                                    {% if model.risk_level == 'high' %}
+                                        <li><i class="bi bi-exclamation-triangle-fill text-danger me-2"></i> Handles sensitive personal data</li>
+                                        <li><i class="bi bi-exclamation-triangle-fill text-danger me-2"></i> Critical decision making</li>
+                                        <li><i class="bi bi-exclamation-triangle-fill text-danger me-2"></i> High impact on individuals</li>
+                                    {% elif model.risk_level == 'medium' %}
+                                        <li><i class="bi bi-exclamation-triangle-fill text-warning me-2"></i> Uses demographic data</li>
+                                        <li><i class="bi bi-exclamation-triangle-fill text-warning me-2"></i> Potential bias in training data</li>
+                                        <li><i class="bi bi-check-circle-fill text-success me-2"></i> Limited human oversight</li>
+                                    {% else %}
+                                        <li><i class="bi bi-check-circle-fill text-success me-2"></i> Minimal personal data</li>
+                                        <li><i class="bi bi-check-circle-fill text-success me-2"></i> Non-critical application</li>
+                                        <li><i class="bi bi-check-circle-fill text-success me-2"></i> Human review of outputs</li>
+                                    {% endif %}
+                                </ul>
+                            </div>
+                            
+                            <a href="{{ url_for('bias_analyzer.analyze_model', model_id=model.id) }}" class="btn btn-warning w-100">
+                                <i class="bi bi-search"></i> Full Bias Analysis
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="d-flex justify-content-between mt-4">
+                <a href="{{ url_for('governance.ai_models') }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Back to Models
+                </a>
+                <div class="btn-group">
+                    <button type="button" class="btn btn-outline-danger dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-exclamation-triangle"></i> Actions
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="{{ url_for('governance.update_ai_model', model_id=model.id) }}">Edit Model</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('bias_analyzer.analyze_model', model_id=model.id) }}">Analyze for Bias</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item text-danger" href="#" data-bs-toggle="modal" data-bs-target="#deleteModal">Delete Model</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Model Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">Confirm Deletion</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete the model <strong>{{ model.name }}</strong>?</p>
+                <p class="text-danger">This action cannot be undone and will remove all associated audit logs, compliance statuses, and bias reports.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form action="#" method="post">
+                    <button type="submit" class="btn btn-danger">Delete Model</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const exportAuditBtn = document.getElementById('exportAuditBtn');
+        
+        // Export audit logs functionality
+        exportAuditBtn.addEventListener('click', function() {
+            let csvContent = "data:text/csv;charset=utf-8,";
+            
+            // Add header
+            csvContent += "Timestamp,Action,User,Details\n";
+            
+            // Add rows
+            const tableRows = document.querySelectorAll('.table tbody tr');
+            tableRows.forEach(row => {
+                if (row.cells.length > 1) {  // Skip empty state row
+                    const timestamp = row.cells[0].textContent.trim();
+                    const action = row.cells[1].textContent.trim();
+                    const user = row.cells[2].textContent.trim();
+                    const details = row.cells[3].textContent.trim();
+                    
+                    csvContent += `"${timestamp}","${action}","${user}","${details}"\n`;
+                }
+            });
+            
+            // Create download link and click it
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "model_audit_logs.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        });
+    });
+</script>
+{% endblock %} 

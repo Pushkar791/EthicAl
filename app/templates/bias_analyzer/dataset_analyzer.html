@@ -1,0 +1,445 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-lg-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('bias_analyzer.index') }}">Bias Analyzer</a></li>
+                    <li class="breadcrumb-item active">Dataset Analyzer</li>
+                </ol>
+            </nav>
+            
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h2 mb-0">Dataset Bias Analyzer</h1>
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#uploadDatasetModal">
+                    <i class="bi bi-upload me-1"></i> Upload Dataset
+                </button>
+            </div>
+            
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">What is Dataset Bias?</h5>
+                            <p class="card-text">Dataset bias occurs when the training data used to develop AI models contains systematic errors, gaps, or skewed representations of certain groups. This can lead to unfair or discriminatory outcomes when the model is deployed.</p>
+                            <p class="card-text">Common types of dataset bias include:</p>
+                            <ul>
+                                <li><strong>Selection Bias:</strong> When the data doesn't represent the population it will serve</li>
+                                <li><strong>Measurement Bias:</strong> When the data collection process is flawed</li>
+                                <li><strong>Label Bias:</strong> When the labels/annotations contain human prejudice</li>
+                                <li><strong>Representation Bias:</strong> When certain groups are over or underrepresented</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">How Dataset Analysis Works</h5>
+                            <ol>
+                                <li><strong>Upload your dataset</strong> in CSV, Excel, or JSON format.</li>
+                                <li><strong>Identify sensitive attributes</strong> in your data such as gender, race, age, etc.</li>
+                                <li><strong>Select target variables</strong> that your AI model will predict.</li>
+                                <li><strong>Run the analysis</strong> to examine distributions across demographic groups.</li>
+                                <li><strong>Review reports</strong> that highlight potential bias issues in your data.</li>
+                                <li><strong>Apply mitigation techniques</strong> to address identified biases.</li>
+                            </ol>
+                            <div class="text-center mt-3">
+                                <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#uploadDatasetModal">
+                                    <i class="bi bi-search"></i> Analyze Your Dataset
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title m-0">Recent Dataset Analyses</h5>
+                    <div class="input-group" style="max-width: 300px;">
+                        <input type="text" class="form-control" id="datasetSearch" placeholder="Search datasets...">
+                        <button class="btn btn-outline-secondary" type="button" id="searchBtn">
+                            <i class="bi bi-search"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    {% if dataset_analyses %}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Dataset Name</th>
+                                    <th>Size</th>
+                                    <th>Date Analyzed</th>
+                                    <th>Sensitive Attributes</th>
+                                    <th>Bias Score</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="datasetsTable">
+                                {% for analysis in dataset_analyses %}
+                                <tr>
+                                    <td>
+                                        <a href="{{ url_for('bias_analyzer.dataset_analysis_result', analysis_id=analysis.id) }}">{{ analysis.dataset_name }}</a>
+                                    </td>
+                                    <td>{{ analysis.row_count }} rows × {{ analysis.column_count }} cols</td>
+                                    <td>{{ analysis.created_at.strftime('%Y-%m-%d') }}</td>
+                                    <td>
+                                        {% for attr in analysis.sensitive_attributes.split(',') %}
+                                        <span class="badge bg-light text-dark">{{ attr.strip() }}</span>
+                                        {% endfor %}
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="progress flex-grow-1" style="height: 8px;">
+                                                <div class="progress-bar {% if analysis.bias_score <= 20 %}bg-success{% elif analysis.bias_score <= 50 %}bg-warning{% else %}bg-danger{% endif %}" role="progressbar" style="width: {{ analysis.bias_score }}%;" aria-valuenow="{{ analysis.bias_score }}" aria-valuemin="0" aria-valuemax="100"></div>
+                                            </div>
+                                            <span class="ms-2 {% if analysis.bias_score <= 20 %}text-success{% elif analysis.bias_score <= 50 %}text-warning{% else %}text-danger{% endif %}">{{ analysis.bias_score }}%</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group">
+                                            <a href="{{ url_for('bias_analyzer.dataset_analysis_result', analysis_id=analysis.id) }}" class="btn btn-sm btn-outline-primary">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                            <a href="{{ url_for('bias_analyzer.rerun_dataset_analysis', analysis_id=analysis.id) }}" class="btn btn-sm btn-outline-secondary">
+                                                <i class="bi bi-arrow-repeat"></i>
+                                            </a>
+                                            <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteAnalysisModal" data-analysis-id="{{ analysis.id }}" data-dataset-name="{{ analysis.dataset_name }}">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="bi bi-table display-1 text-muted"></i>
+                        <h5 class="mt-3">No dataset analyses found</h5>
+                        <p class="text-muted">Start by uploading a dataset for bias analysis.</p>
+                        <button class="btn btn-primary mt-2" data-bs-toggle="modal" data-bs-target="#uploadDatasetModal">
+                            <i class="bi bi-upload me-1"></i> Upload Dataset
+                        </button>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="card-title m-0">Common Bias Patterns Found</h5>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="biasTypesChart" height="250"></canvas>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="card-title m-0">Mitigation Techniques</h5>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="list-group list-group-flush">
+                                <a href="#" class="list-group-item list-group-item-action">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1">Resampling</h6>
+                                        <span class="badge bg-primary">Popular</span>
+                                    </div>
+                                    <p class="mb-1 small">Balance representation by up/down sampling underrepresented groups.</p>
+                                </a>
+                                <a href="#" class="list-group-item list-group-item-action">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1">Feature Transformation</h6>
+                                        <span class="badge bg-success">Effective</span>
+                                    </div>
+                                    <p class="mb-1 small">Apply transformations to remove correlations with sensitive attributes.</p>
+                                </a>
+                                <a href="#" class="list-group-item list-group-item-action">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1">Synthetic Data Generation</h6>
+                                        <span class="badge bg-info">Advanced</span>
+                                    </div>
+                                    <p class="mb-1 small">Create synthetic data with specific fairness properties.</p>
+                                </a>
+                                <a href="#" class="list-group-item list-group-item-action">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1">Bias Aware Data Collection</h6>
+                                        <span class="badge bg-warning">Preventive</span>
+                                    </div>
+                                    <p class="mb-1 small">Design data collection processes to minimize bias from the start.</p>
+                                </a>
+                            </div>
+                            <div class="p-3">
+                                <a href="{{ url_for('bias_analyzer.mitigation') }}" class="btn btn-sm btn-outline-primary w-100">
+                                    <i class="bi bi-tools me-1"></i> Explore Mitigation Tools
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Upload Dataset Modal -->
+<div class="modal fade" id="uploadDatasetModal" tabindex="-1" aria-labelledby="uploadDatasetModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="uploadDatasetModalLabel">Upload Dataset for Analysis</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="uploadDatasetForm" method="post" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label for="datasetName" class="form-label">Dataset Name <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="datasetName" name="dataset_name" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="datasetDescription" class="form-label">Description</label>
+                        <textarea class="form-control" id="datasetDescription" name="description" rows="2"></textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="datasetFile" class="form-label">Dataset File <span class="text-danger">*</span></label>
+                        <input class="form-control" type="file" id="datasetFile" name="dataset_file" accept=".csv,.xlsx,.json" required>
+                        <div class="form-text">Upload a CSV, Excel, or JSON file containing your dataset (max 50MB).</div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <h6>Analysis Settings</h6>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Potential Sensitive Attributes <span class="text-danger">*</span></label>
+                            <div class="form-text mb-2">Select columns in your dataset that contain sensitive attributes.</div>
+                            <div class="border rounded p-3" style="max-height: 150px; overflow-y: auto;">
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" id="attrGender" name="sensitive_attributes" value="gender">
+                                    <label class="form-check-label" for="attrGender">Gender</label>
+                                </div>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" id="attrRace" name="sensitive_attributes" value="race">
+                                    <label class="form-check-label" for="attrRace">Race/Ethnicity</label>
+                                </div>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" id="attrAge" name="sensitive_attributes" value="age">
+                                    <label class="form-check-label" for="attrAge">Age</label>
+                                </div>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" id="attrNationality" name="sensitive_attributes" value="nationality">
+                                    <label class="form-check-label" for="attrNationality">Nationality</label>
+                                </div>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" id="attrReligion" name="sensitive_attributes" value="religion">
+                                    <label class="form-check-label" for="attrReligion">Religion</label>
+                                </div>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" id="attrIncome" name="sensitive_attributes" value="income">
+                                    <label class="form-check-label" for="attrIncome">Income</label>
+                                </div>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" id="attrZipcode" name="sensitive_attributes" value="zipcode">
+                                    <label class="form-check-label" for="attrZipcode">Zipcode/Location</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="attrDisability" name="sensitive_attributes" value="disability">
+                                    <label class="form-check-label" for="attrDisability">Disability</label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label for="targetVariable" class="form-label">Target Variable <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="targetVariable" name="target_variable" placeholder="e.g., loan_approval">
+                            <div class="form-text">The column in your dataset that the AI model would predict.</div>
+                            
+                            <div class="mt-3">
+                                <label for="analysisType" class="form-label">Analysis Type</label>
+                                <select class="form-select" id="analysisType" name="analysis_type">
+                                    <option value="comprehensive" selected>Comprehensive (All bias metrics)</option>
+                                    <option value="statistical">Statistical Distribution Analysis</option>
+                                    <option value="correlation">Correlation Analysis</option>
+                                    <option value="representation">Representation Analysis</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="suggestMitigation" name="suggest_mitigation" checked>
+                            <label class="form-check-label" for="suggestMitigation">
+                                Generate mitigation recommendations based on findings
+                            </label>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="submitDatasetBtn">Upload & Analyze</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Analysis Modal -->
+<div class="modal fade" id="deleteAnalysisModal" tabindex="-1" aria-labelledby="deleteAnalysisModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteAnalysisModalLabel">Confirm Deletion</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete the analysis for "<span id="datasetName"></span>"?</p>
+                <p class="text-danger">This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form id="deleteAnalysisForm" method="post" action="">
+                    <button type="submit" class="btn btn-danger">Delete Analysis</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Bias types chart
+        const biasTypesCtx = document.getElementById('biasTypesChart').getContext('2d');
+        const biasTypesChart = new Chart(biasTypesCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Selection Bias', 'Representation Bias', 'Measurement Bias', 'Label Bias', 'Temporal Bias'],
+                datasets: [{
+                    label: 'Frequency Found',
+                    data: [68, 54, 42, 37, 25],
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.8)',
+                        'rgba(54, 162, 235, 0.8)',
+                        'rgba(255, 206, 86, 0.8)',
+                        'rgba(75, 192, 192, 0.8)',
+                        'rgba(153, 102, 255, 0.8)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Frequency (%)'
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+        
+        // Delete analysis modal
+        const deleteAnalysisModal = document.getElementById('deleteAnalysisModal');
+        if (deleteAnalysisModal) {
+            deleteAnalysisModal.addEventListener('show.bs.modal', function(event) {
+                const button = event.relatedTarget;
+                const analysisId = button.getAttribute('data-analysis-id');
+                const datasetName = button.getAttribute('data-dataset-name');
+                
+                document.getElementById('datasetName').textContent = datasetName;
+                document.getElementById('deleteAnalysisForm').action = '/bias_analyzer/dataset_analysis/' + analysisId + '/delete';
+            });
+        }
+        
+        // Search functionality
+        const searchInput = document.getElementById('datasetSearch');
+        const searchBtn = document.getElementById('searchBtn');
+        const datasetsTable = document.getElementById('datasetsTable');
+        
+        const performSearch = () => {
+            const searchTerm = searchInput.value.toLowerCase();
+            
+            if (datasetsTable) {
+                const rows = datasetsTable.querySelectorAll('tr');
+                
+                rows.forEach(row => {
+                    const datasetName = row.querySelector('td:first-child').textContent.toLowerCase();
+                    
+                    if (datasetName.includes(searchTerm)) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+            }
+        };
+        
+        if (searchBtn) {
+            searchBtn.addEventListener('click', performSearch);
+        }
+        
+        if (searchInput) {
+            searchInput.addEventListener('keyup', function(event) {
+                if (event.key === 'Enter') {
+                    performSearch();
+                }
+            });
+        }
+        
+        // Submit dataset form
+        const submitDatasetBtn = document.getElementById('submitDatasetBtn');
+        const uploadDatasetForm = document.getElementById('uploadDatasetForm');
+        
+        if (submitDatasetBtn && uploadDatasetForm) {
+            submitDatasetBtn.addEventListener('click', function() {
+                // Check if at least one sensitive attribute is selected
+                const sensitiveAttributes = document.querySelectorAll('input[name="sensitive_attributes"]:checked');
+                
+                if (!uploadDatasetForm.checkValidity() || sensitiveAttributes.length === 0) {
+                    // Show validation messages
+                    if (sensitiveAttributes.length === 0) {
+                        alert('Please select at least one sensitive attribute to analyze');
+                    } else if (!document.getElementById('datasetFile').files.length) {
+                        alert('Please upload a dataset file');
+                    } else {
+                        alert('Please fill in all required fields');
+                    }
+                    return;
+                }
+                
+                // In a real application, this would submit the form
+                // For this demo, we'll just close the modal and show a message
+                alert('Dataset would be uploaded and analyzed in a real application');
+                const modal = bootstrap.Modal.getInstance(document.getElementById('uploadDatasetModal'));
+                modal.hide();
+            });
+        }
+    });
+</script>
+{% endblock %} 

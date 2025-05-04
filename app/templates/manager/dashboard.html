@@ -1,0 +1,284 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1 class="h2 mb-4">Manager Dashboard</h1>
+
+<div class="row mb-4">
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card dashboard-stat-card stat-primary h-100 py-2">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Team Members</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">8</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-people fs-2 text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card dashboard-stat-card stat-success h-100 py-2">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">AI Projects</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">6</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-kanban fs-2 text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card dashboard-stat-card stat-info h-100 py-2">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Compliance Status</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">78%</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-shield-check fs-2 text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card dashboard-stat-card stat-warning h-100 py-2">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Pending Approvals</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">4</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-hourglass-split fs-2 text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-lg-6">
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="m-0 font-weight-bold">Team Performance</h5>
+                <div class="dropdown">
+                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="teamDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        This Month
+                    </button>
+                    <ul class="dropdown-menu" aria-labelledby="teamDropdown">
+                        <li><a class="dropdown-item" href="#">This Week</a></li>
+                        <li><a class="dropdown-item" href="#">This Month</a></li>
+                        <li><a class="dropdown-item" href="#">This Quarter</a></li>
+                        <li><a class="dropdown-item" href="#">This Year</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Team Member</th>
+                                <th>Role</th>
+                                <th>Models</th>
+                                <th>Completion</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Alex Johnson</td>
+                                <td>Developer</td>
+                                <td>3</td>
+                                <td>
+                                    <div class="progress" style="height: 5px;">
+                                        <div class="progress-bar bg-success" role="progressbar" style="width: 85%;" aria-valuenow="85" aria-valuemin="0" aria-valuemax="100"></div>
+                                    </div>
+                                </td>
+                                <td><span class="badge bg-success">On Track</span></td>
+                            </tr>
+                            <tr>
+                                <td>Maria Garcia</td>
+                                <td>Data Scientist</td>
+                                <td>2</td>
+                                <td>
+                                    <div class="progress" style="height: 5px;">
+                                        <div class="progress-bar bg-warning" role="progressbar" style="width: 60%;" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100"></div>
+                                    </div>
+                                </td>
+                                <td><span class="badge bg-warning">Needs Attention</span></td>
+                            </tr>
+                            <tr>
+                                <td>James Smith</td>
+                                <td>Developer</td>
+                                <td>4</td>
+                                <td>
+                                    <div class="progress" style="height: 5px;">
+                                        <div class="progress-bar bg-success" role="progressbar" style="width: 90%;" aria-valuenow="90" aria-valuemin="0" aria-valuemax="100"></div>
+                                    </div>
+                                </td>
+                                <td><span class="badge bg-success">On Track</span></td>
+                            </tr>
+                            <tr>
+                                <td>Sarah Wilson</td>
+                                <td>ML Engineer</td>
+                                <td>2</td>
+                                <td>
+                                    <div class="progress" style="height: 5px;">
+                                        <div class="progress-bar bg-danger" role="progressbar" style="width: 45%;" aria-valuenow="45" aria-valuemin="0" aria-valuemax="100"></div>
+                                    </div>
+                                </td>
+                                <td><span class="badge bg-danger">At Risk</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="m-0 font-weight-bold">Compliance Dashboard</h5>
+            </div>
+            <div class="card-body">
+                <h6 class="mb-3">Framework Compliance</h6>
+                <div class="mb-4">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span>GDPR</span>
+                        <span>85%</span>
+                    </div>
+                    <div class="progress" style="height: 8px;">
+                        <div class="progress-bar bg-success" role="progressbar" style="width: 85%;" aria-valuenow="85" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                </div>
+                <div class="mb-4">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span>IEEE Ethics Standards</span>
+                        <span>72%</span>
+                    </div>
+                    <div class="progress" style="height: 8px;">
+                        <div class="progress-bar bg-info" role="progressbar" style="width: 72%;" aria-valuenow="72" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                </div>
+                <div class="mb-4">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span>NIST AI Framework</span>
+                        <span>90%</span>
+                    </div>
+                    <div class="progress" style="height: 8px;">
+                        <div class="progress-bar bg-success" role="progressbar" style="width: 90%;" aria-valuenow="90" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                </div>
+                <div class="mb-4">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span>ISO/IEC Standards</span>
+                        <span>65%</span>
+                    </div>
+                    <div class="progress" style="height: 8px;">
+                        <div class="progress-bar bg-warning" role="progressbar" style="width: 65%;" aria-valuenow="65" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                </div>
+                
+                <a href="{{ url_for('governance.compliance_frameworks') }}" class="btn btn-sm btn-primary w-100 mt-3">View Detailed Compliance</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="m-0 font-weight-bold">Pending Approvals</h5>
+                <a href="#" class="btn btn-sm btn-primary">View All</a>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Model/Project</th>
+                                <th>Requestor</th>
+                                <th>Type</th>
+                                <th>Submitted</th>
+                                <th>Risk Level</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Customer Churn Predictor</td>
+                                <td>Alex Johnson</td>
+                                <td>Model Deployment</td>
+                                <td>May 3, 2025</td>
+                                <td><span class="badge risk-medium">Medium</span></td>
+                                <td>
+                                    <button class="btn btn-sm btn-success" data-model="Customer Churn Predictor" data-requestor="Alex Johnson">Approve</button>
+                                    <button class="btn btn-sm btn-danger" data-model="Customer Churn Predictor" data-requestor="Alex Johnson">Reject</button>
+                                    <button class="btn btn-sm btn-info" data-model="Customer Churn Predictor">Review</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Product Recommendation Engine</td>
+                                <td>Maria Garcia</td>
+                                <td>New Model</td>
+                                <td>May 2, 2025</td>
+                                <td><span class="badge risk-high">High</span></td>
+                                <td>
+                                    <button class="btn btn-sm btn-success" data-model="Product Recommendation Engine" data-requestor="Maria Garcia">Approve</button>
+                                    <button class="btn btn-sm btn-danger" data-model="Product Recommendation Engine" data-requestor="Maria Garcia">Reject</button>
+                                    <button class="btn btn-sm btn-info" data-model="Product Recommendation Engine">Review</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Credit Risk Assessment</td>
+                                <td>James Smith</td>
+                                <td>Policy Exception</td>
+                                <td>May 1, 2025</td>
+                                <td><span class="badge risk-high">High</span></td>
+                                <td>
+                                    <button class="btn btn-sm btn-success" data-model="Credit Risk Assessment" data-requestor="James Smith">Approve</button>
+                                    <button class="btn btn-sm btn-danger" data-model="Credit Risk Assessment" data-requestor="James Smith">Reject</button>
+                                    <button class="btn btn-sm btn-info" data-model="Credit Risk Assessment">Review</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Inventory Management AI</td>
+                                <td>Sarah Wilson</td>
+                                <td>Model Update</td>
+                                <td>April 29, 2025</td>
+                                <td><span class="badge risk-low">Low</span></td>
+                                <td>
+                                    <button class="btn btn-sm btn-success" data-model="Inventory Management AI" data-requestor="Sarah Wilson">Approve</button>
+                                    <button class="btn btn-sm btn-danger" data-model="Inventory Management AI" data-requestor="Sarah Wilson">Reject</button>
+                                    <button class="btn btn-sm btn-info" data-model="Inventory Management AI">Review</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Additional dashboard-specific JavaScript can go here
+</script>
+{% endblock %} 

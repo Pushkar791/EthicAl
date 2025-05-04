@@ -1,0 +1,360 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-lg-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('bias_analyzer.index') }}">Bias Analyzer</a></li>
+                    <li class="breadcrumb-item active">AI Models</li>
+                </ol>
+            </nav>
+            
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h2 mb-0">AI Models</h1>
+                <div>
+                    <a href="{{ url_for('bias_analyzer.upload_model') }}" class="btn btn-primary me-2">
+                        <i class="bi bi-upload me-1"></i> Upload Model
+                    </a>
+                    <a href="{{ url_for('bias_analyzer.new_analysis') }}" class="btn btn-outline-primary">
+                        <i class="bi bi-plus-circle me-1"></i> New Analysis
+                    </a>
+                </div>
+            </div>
+            
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title m-0">My AI Models</h5>
+                    <div class="input-group" style="max-width: 300px;">
+                        <input type="text" class="form-control" id="modelSearch" placeholder="Search models...">
+                        <button class="btn btn-outline-secondary" type="button" id="searchBtn">
+                            <i class="bi bi-search"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    {% if ai_models %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Model Name</th>
+                                    <th>Type</th>
+                                    <th>Last Analysis</th>
+                                    <th>Fairness Score</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="modelsTable">
+                                {% for model in ai_models %}
+                                <tr>
+                                    <td>
+                                        <div>{{ model.name }}</div>
+                                        <small class="text-muted">v{{ model.version }}</small>
+                                    </td>
+                                    <td>{{ model.model_type }}</td>
+                                    <td>
+                                        {% if model.last_analysis_date %}
+                                            {{ model.last_analysis_date.strftime('%Y-%m-%d') }}
+                                        {% else %}
+                                            <span class="text-muted">Not analyzed</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if model.fairness_score %}
+                                        <div class="d-flex align-items-center">
+                                            <div class="progress me-2" style="width: 80px; height: 8px;">
+                                                <div class="progress-bar {% if model.fairness_score >= 80 %}bg-success{% elif model.fairness_score >= 60 %}bg-warning{% else %}bg-danger{% endif %}" role="progressbar" style="width: {{ model.fairness_score }}%;" aria-valuenow="{{ model.fairness_score }}" aria-valuemin="0" aria-valuemax="100"></div>
+                                            </div>
+                                            <span class="{% if model.fairness_score >= 80 %}text-success{% elif model.fairness_score >= 60 %}text-warning{% else %}text-danger{% endif %}">
+                                                {{ model.fairness_score }}%
+                                            </span>
+                                        </div>
+                                        {% else %}
+                                        <span class="text-muted">Not available</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if model.status == 'active' %}
+                                            <span class="badge bg-success">Active</span>
+                                        {% elif model.status == 'inactive' %}
+                                            <span class="badge bg-secondary">Inactive</span>
+                                        {% elif model.status == 'testing' %}
+                                            <span class="badge bg-info">Testing</span>
+                                        {% else %}
+                                            <span class="badge bg-warning">Draft</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group">
+                                            <a href="{{ url_for('bias_analyzer.view_model', model_id=model.id) }}" class="btn btn-sm btn-outline-primary">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                            <a href="{{ url_for('bias_analyzer.analyze_model', model_id=model.id) }}" class="btn btn-sm btn-warning">
+                                                <i class="bi bi-search"></i> Analyze
+                                            </a>
+                                            <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                                                <i class="bi bi-three-dots-vertical"></i>
+                                            </button>
+                                            <ul class="dropdown-menu dropdown-menu-end">
+                                                <li><a class="dropdown-item" href="{{ url_for('bias_analyzer.view_model', model_id=model.id) }}">View Details</a></li>
+                                                <li><hr class="dropdown-divider"></li>
+                                                <li><a class="dropdown-item text-danger" href="#" data-bs-toggle="modal" data-bs-target="#deleteModelModal" data-model-id="{{ model.id }}" data-model-name="{{ model.name }}">Delete Model</a></li>
+                                            </ul>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="bi bi-robot display-1 text-muted"></i>
+                        <h5 class="mt-3">No AI models found</h5>
+                        <p class="text-muted">Start by uploading or registering your first AI model.</p>
+                        <a href="{{ url_for('bias_analyzer.upload_model') }}" class="btn btn-primary mt-2">
+                            <i class="bi bi-upload me-1"></i> Upload Model
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="card-title m-0">Fairness Overview</h5>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="fairnessDistributionChart" height="250"></canvas>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="card-title m-0">Models by Type</h5>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="modelTypeChart" height="250"></canvas>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title m-0">Getting Started with Bias Analysis</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="d-flex">
+                                        <div class="me-3">
+                                            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                                <span>1</span>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <h6>Upload or Register Your Model</h6>
+                                            <p class="small text-muted">Add your AI model to the platform by providing model details or uploading model files.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="d-flex">
+                                        <div class="me-3">
+                                            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                                <span>2</span>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <h6>Provide Test Data</h6>
+                                            <p class="small text-muted">Supply representative test data to evaluate the model's performance across demographic groups.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="d-flex">
+                                        <div class="me-3">
+                                            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                                <span>3</span>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <h6>Run Bias Analysis</h6>
+                                            <p class="small text-muted">Start the analysis process to measure fairness metrics and identify potential biases.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="text-center mt-3">
+                                <a href="{{ url_for('bias_analyzer.upload_model') }}" class="btn btn-primary">
+                                    <i class="bi bi-rocket-takeoff me-1"></i> Get Started
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Model Modal -->
+<div class="modal fade" id="deleteModelModal" tabindex="-1" aria-labelledby="deleteModelModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModelModalLabel">Confirm Deletion</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete the model "<span id="modelName"></span>"?</p>
+                <p class="text-danger">This action cannot be undone and will remove all associated analysis reports.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form id="deleteModelForm" method="post" action="">
+                    <button type="submit" class="btn btn-danger">Delete Model</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Delete model modal
+        const deleteModelModal = document.getElementById('deleteModelModal');
+        if (deleteModelModal) {
+            deleteModelModal.addEventListener('show.bs.modal', function(event) {
+                const button = event.relatedTarget;
+                const modelId = button.getAttribute('data-model-id');
+                const modelName = button.getAttribute('data-model-name');
+                
+                document.getElementById('modelName').textContent = modelName;
+                document.getElementById('deleteModelForm').action = "{{ url_for('bias_analyzer.delete_model', model_id=0) }}".replace('0', modelId);
+            });
+        }
+        
+        // Search functionality
+        const searchInput = document.getElementById('modelSearch');
+        const searchBtn = document.getElementById('searchBtn');
+        const modelsTable = document.getElementById('modelsTable');
+        
+        const performSearch = () => {
+            const searchTerm = searchInput.value.toLowerCase();
+            
+            if (modelsTable) {
+                const rows = modelsTable.querySelectorAll('tr');
+                
+                rows.forEach(row => {
+                    const modelName = row.querySelector('td:first-child').textContent.toLowerCase();
+                    
+                    if (modelName.includes(searchTerm)) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+            }
+        };
+        
+        if (searchBtn) {
+            searchBtn.addEventListener('click', performSearch);
+        }
+        
+        if (searchInput) {
+            searchInput.addEventListener('keyup', function(event) {
+                if (event.key === 'Enter') {
+                    performSearch();
+                }
+            });
+        }
+        
+        // Charts
+        // Fairness distribution chart
+        const fairnessCtx = document.getElementById('fairnessDistributionChart').getContext('2d');
+        const fairnessChart = new Chart(fairnessCtx, {
+            type: 'pie',
+            data: {
+                labels: ['High Fairness (80-100%)', 'Medium Fairness (60-79%)', 'Low Fairness (<60%)'],
+                datasets: [{
+                    data: [8, 3, 2],
+                    backgroundColor: [
+                        'rgba(40, 167, 69, 0.8)',
+                        'rgba(255, 193, 7, 0.8)',
+                        'rgba(220, 53, 69, 0.8)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+        
+        // Model type chart
+        const typeCtx = document.getElementById('modelTypeChart').getContext('2d');
+        const typeChart = new Chart(typeCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Classification', 'Regression', 'Clustering', 'NLP', 'Computer Vision'],
+                datasets: [{
+                    label: 'Number of Models',
+                    data: [5, 3, 1, 2, 2],
+                    backgroundColor: [
+                        'rgba(54, 162, 235, 0.8)',
+                        'rgba(75, 192, 192, 0.8)',
+                        'rgba(153, 102, 255, 0.8)',
+                        'rgba(255, 159, 64, 0.8)',
+                        'rgba(255, 99, 132, 0.8)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Number of Models'
+                        },
+                        ticks: {
+                            precision: 0
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Model Type'
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %} 

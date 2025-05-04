@@ -1,0 +1,383 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-lg-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('bias_analyzer.index') }}">Bias Analyzer</a></li>
+                    <li class="breadcrumb-item active">Real-Time Monitoring</li>
+                </ol>
+            </nav>
+            
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h2 mb-0">Real-Time Bias Monitoring</h1>
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#setupMonitoringModal">
+                    <i class="bi bi-plus-circle me-1"></i> Set Up New Monitor
+                </button>
+            </div>
+            
+            <div class="row mb-4">
+                <div class="col-md-12">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="card-title m-0">Active Monitoring Dashboards</h5>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="autoRefreshSwitch" checked>
+                                <label class="form-check-label" for="autoRefreshSwitch">Auto-refresh</label>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                {% if monitors %}
+                                    {% for monitor in monitors %}
+                                    <div class="col-md-6 col-lg-4 mb-4">
+                                        <div class="card h-100">
+                                            <div class="card-header d-flex justify-content-between align-items-center">
+                                                <h6 class="m-0">{{ monitor.model_name }}</h6>
+                                                <span class="badge {% if monitor.status == 'active' %}bg-success{% elif monitor.status == 'warning' %}bg-warning{% else %}bg-danger{% endif %}">
+                                                    {{ monitor.status|capitalize }}
+                                                </span>
+                                            </div>
+                                            <div class="card-body">
+                                                <div class="mb-3">
+                                                    <div class="d-flex justify-content-between mb-1">
+                                                        <span>Fairness Score</span>
+                                                        <span class="{% if monitor.fairness_score >= 80 %}text-success{% elif monitor.fairness_score >= 60 %}text-warning{% else %}text-danger{% endif %}">
+                                                            {{ monitor.fairness_score }}%
+                                                        </span>
+                                                    </div>
+                                                    <div class="progress" style="height: 8px;">
+                                                        <div class="progress-bar {% if monitor.fairness_score >= 80 %}bg-success{% elif monitor.fairness_score >= 60 %}bg-warning{% else %}bg-danger{% endif %}" role="progressbar" style="width: {{ monitor.fairness_score }}%;" aria-valuenow="{{ monitor.fairness_score }}" aria-valuemin="0" aria-valuemax="100"></div>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="small text-muted mb-3">
+                                                    <strong>Monitoring:</strong> {{ monitor.monitored_attributes|join(', ') }}
+                                                </div>
+                                                
+                                                <div class="small text-muted mb-3">
+                                                    <strong>Last checked:</strong> {{ monitor.last_checked.strftime('%Y-%m-%d %H:%M') }}
+                                                </div>
+                                                
+                                                {% if monitor.alerts %}
+                                                <div class="alert alert-warning p-2 small mb-3">
+                                                    <strong>{{ monitor.alerts }} new alert(s) detected</strong>
+                                                </div>
+                                                {% endif %}
+                                                
+                                                <div class="d-grid gap-2">
+                                                    <a href="{{ url_for('bias_analyzer.monitor_detail', monitor_id=monitor.id) }}" class="btn btn-outline-primary btn-sm">View Details</a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                {% else %}
+                                    <div class="col-12 text-center py-5">
+                                        <i class="bi bi-activity display-1 text-muted"></i>
+                                        <h5 class="mt-3">No active monitoring configured</h5>
+                                        <p class="text-muted">Set up real-time monitoring for your deployed models.</p>
+                                        <button type="button" class="btn btn-primary mt-2" data-bs-toggle="modal" data-bs-target="#setupMonitoringModal">
+                                            <i class="bi bi-plus-circle me-1"></i> Set Up Monitoring
+                                        </button>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="card-title m-0">Fairness Drift Over Time</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <select class="form-select form-select-sm" id="fairnessDriftModelSelect">
+                                    <option selected>All Models</option>
+                                    {% if monitors %}
+                                        {% for monitor in monitors %}
+                                        <option value="{{ monitor.id }}">{{ monitor.model_name }}</option>
+                                        {% endfor %}
+                                    {% endif %}
+                                </select>
+                            </div>
+                            <canvas id="fairnessDriftChart" height="250"></canvas>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="card mb-4">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="card-title m-0">Recent Alerts</h5>
+                            <a href="{{ url_for('bias_analyzer.alerts') }}" class="btn btn-sm btn-outline-primary">View All</a>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="list-group list-group-flush">
+                                {% if alerts %}
+                                    {% for alert in alerts %}
+                                    <a href="{{ url_for('bias_analyzer.alert_detail', alert_id=alert.id) }}" class="list-group-item list-group-item-action">
+                                        <div class="d-flex w-100 justify-content-between">
+                                            <h6 class="mb-1">{{ alert.model_name }}</h6>
+                                            <small class="text-muted">{{ alert.created_at.strftime('%Y-%m-%d %H:%M') }}</small>
+                                        </div>
+                                        <p class="mb-1">{{ alert.message }}</p>
+                                        <div>
+                                            <span class="badge {% if alert.severity == 'high' %}bg-danger{% elif alert.severity == 'medium' %}bg-warning{% else %}bg-info{% endif %}">
+                                                {{ alert.severity|capitalize }}
+                                            </span>
+                                            <span class="badge bg-light text-dark">{{ alert.type }}</span>
+                                        </div>
+                                    </a>
+                                    {% endfor %}
+                                {% else %}
+                                    <div class="text-center py-4">
+                                        <p class="text-muted mb-0">No recent alerts</p>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Set Up Monitoring Modal -->
+<div class="modal fade" id="setupMonitoringModal" tabindex="-1" aria-labelledby="setupMonitoringModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="setupMonitoringModalLabel">Set Up Real-Time Monitoring</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="setupMonitoringForm">
+                    <div class="mb-3">
+                        <label for="modelSelect" class="form-label">Select Model <span class="text-danger">*</span></label>
+                        <select class="form-select" id="modelSelect" required>
+                            <option value="" selected disabled>Choose a model...</option>
+                            <option value="1">Customer Churn Predictor v1.2</option>
+                            <option value="2">Loan Approval Model v2.0</option>
+                            <option value="3">Employee Retention Predictor v1.0</option>
+                            <option value="4">Fraud Detection System v1.5</option>
+                            <option value="5">Product Recommendation Engine v2.3</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="endpointURL" class="form-label">API Endpoint URL <span class="text-danger">*</span></label>
+                        <input type="url" class="form-control" id="endpointURL" placeholder="https://api.example.com/model/predict" required>
+                        <div class="form-text">The prediction endpoint where your model is deployed.</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Sensitive Attributes to Monitor <span class="text-danger">*</span></label>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" id="attrGender" name="sensitiveAttributes" value="gender">
+                                    <label class="form-check-label" for="attrGender">Gender</label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" id="attrRace" name="sensitiveAttributes" value="race">
+                                    <label class="form-check-label" for="attrRace">Race/Ethnicity</label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" id="attrAge" name="sensitiveAttributes" value="age">
+                                    <label class="form-check-label" for="attrAge">Age</label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" id="attrNationality" name="sensitiveAttributes" value="nationality">
+                                    <label class="form-check-label" for="attrNationality">Nationality</label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" id="attrDisability" name="sensitiveAttributes" value="disability">
+                                    <label class="form-check-label" for="attrDisability">Disability</label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" id="attrIncome" name="sensitiveAttributes" value="income">
+                                    <label class="form-check-label" for="attrIncome">Income Level</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <h6>Monitoring Settings</h6>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="checkFrequency" class="form-label">Check Frequency</label>
+                            <select class="form-select" id="checkFrequency">
+                                <option value="5">Every 5 minutes</option>
+                                <option value="15">Every 15 minutes</option>
+                                <option value="30">Every 30 minutes</option>
+                                <option value="60" selected>Every hour</option>
+                                <option value="360">Every 6 hours</option>
+                                <option value="720">Every 12 hours</option>
+                                <option value="1440">Daily</option>
+                            </select>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label for="alertThreshold" class="form-label">Alert Threshold</label>
+                            <select class="form-select" id="alertThreshold">
+                                <option value="0.05">5% deviation</option>
+                                <option value="0.1" selected>10% deviation</option>
+                                <option value="0.15">15% deviation</option>
+                                <option value="0.2">20% deviation</option>
+                            </select>
+                            <div class="form-text">Trigger alerts when fairness score changes by this percentage.</div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="alertNotifications" checked>
+                            <label class="form-check-label" for="alertNotifications">
+                                Enable email alerts for significant bias changes
+                            </label>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="saveMonitoringBtn">Set Up Monitoring</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize fairness drift chart
+        const fairnessDriftCtx = document.getElementById('fairnessDriftChart').getContext('2d');
+        const fairnessDriftChart = new Chart(fairnessDriftCtx, {
+            type: 'line',
+            data: {
+                labels: ['Jan 1', 'Jan 8', 'Jan 15', 'Jan 22', 'Jan 29', 'Feb 5', 'Feb 12', 'Feb 19', 'Feb 26', 'Mar 5'],
+                datasets: [{
+                    label: 'Overall Fairness Score',
+                    data: [92, 90, 91, 89, 84, 82, 78, 76, 75, 79],
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        min: 50,
+                        max: 100,
+                        title: {
+                            display: true,
+                            text: 'Fairness Score (%)'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Date'
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top'
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.dataset.label + ': ' + context.parsed.y + '%';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Handle model select change for fairness drift chart
+        document.getElementById('fairnessDriftModelSelect').addEventListener('change', function() {
+            const selectedModel = this.value;
+            
+            // In a real application, this would fetch data for the specific model
+            // For this demo, we'll just update the chart with random data
+            if (selectedModel === '1') {
+                updateChartData(fairnessDriftChart, [90, 88, 86, 87, 85, 83, 82, 84, 85, 86]);
+            } else if (selectedModel === '2') {
+                updateChartData(fairnessDriftChart, [95, 94, 92, 90, 88, 86, 85, 83, 80, 78]);
+            } else if (selectedModel === '3') {
+                updateChartData(fairnessDriftChart, [85, 84, 83, 82, 81, 80, 78, 75, 73, 70]);
+            } else {
+                updateChartData(fairnessDriftChart, [92, 90, 91, 89, 84, 82, 78, 76, 75, 79]);
+            }
+        });
+        
+        function updateChartData(chart, newData) {
+            chart.data.datasets[0].data = newData;
+            chart.update();
+        }
+        
+        // Auto-refresh switch
+        document.getElementById('autoRefreshSwitch').addEventListener('change', function() {
+            if (this.checked) {
+                // In a real application, this would start auto-refreshing
+                console.log('Auto-refresh enabled');
+            } else {
+                // In a real application, this would stop auto-refreshing
+                console.log('Auto-refresh disabled');
+            }
+        });
+        
+        // Save monitoring button
+        document.getElementById('saveMonitoringBtn').addEventListener('click', function() {
+            const form = document.getElementById('setupMonitoringForm');
+            
+            // Check if at least one sensitive attribute is selected
+            const sensitiveAttributes = document.querySelectorAll('input[name="sensitiveAttributes"]:checked');
+            
+            if (!form.checkValidity() || sensitiveAttributes.length === 0) {
+                // Show validation messages
+                if (sensitiveAttributes.length === 0) {
+                    alert('Please select at least one sensitive attribute to monitor');
+                } else {
+                    alert('Please fill in all required fields');
+                }
+                return;
+            }
+            
+            // In a real application, this would submit the form
+            // For this demo, we'll just close the modal and show a message
+            alert('Monitoring would be set up in a real application');
+            const modal = bootstrap.Modal.getInstance(document.getElementById('setupMonitoringModal'));
+            modal.hide();
+        });
+    });
+</script>
+{% endblock %} 

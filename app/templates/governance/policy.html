@@ -1,0 +1,411 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-lg-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('governance.index') }}">Governance</a></li>
+                    <li class="breadcrumb-item"><a href="{{ url_for('governance.policies') }}">Policy Documents</a></li>
+                    <li class="breadcrumb-item active">{{ policy.title }}</li>
+                </ol>
+            </nav>
+            
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="h2 mb-1">{{ policy.title }}</h1>
+                    <p class="text-muted">
+                        <span class="badge bg-primary">Version {{ policy.version }}</span>
+                        <span class="ms-2">Last updated: {{ policy.updated_at.strftime('%B %d, %Y') if policy.updated_at else policy.created_at.strftime('%B %d, %Y') }}</span>
+                        <span class="ms-2">Category: {{ policy.category|capitalize }}</span>
+                    </p>
+                </div>
+                <div class="d-flex">
+                    <button class="btn btn-outline-primary me-2" id="printBtn">
+                        <i class="bi bi-printer"></i> Print
+                    </button>
+                    <div class="dropdown">
+                        <button class="btn btn-outline-secondary me-2 dropdown-toggle" type="button" id="exportDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-download"></i> Export
+                        </button>
+                        <ul class="dropdown-menu" aria-labelledby="exportDropdown">
+                            <li><a class="dropdown-item" href="#" id="exportPDF">PDF Document</a></li>
+                            <li><a class="dropdown-item" href="#" id="exportWord">MS Word</a></li>
+                            <li><a class="dropdown-item" href="#" id="exportText">Plain Text</a></li>
+                        </ul>
+                    </div>
+                    <a href="{{ url_for('governance.update_policy', policy_id=policy.id) }}" class="btn btn-primary">
+                        <i class="bi bi-pencil"></i> Edit
+                    </a>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-lg-9">
+                    <div class="card mb-4">
+                        <div class="card-body policy-document">
+                            <div class="d-flex justify-content-between align-items-center mb-4">
+                                <h2>{{ policy.title }}</h2>
+                                <span class="badge bg-primary">Version {{ policy.version }}</span>
+                            </div>
+                            
+                            <div class="alert alert-info">
+                                <div class="d-flex">
+                                    <div class="me-3">
+                                        <i class="bi bi-info-circle-fill display-6"></i>
+                                    </div>
+                                    <div>
+                                        <h5 class="alert-heading">Policy Information</h5>
+                                        <dl class="row mb-0">
+                                            <dt class="col-sm-4">Effective Date</dt>
+                                            <dd class="col-sm-8">{{ policy.effective_date.strftime('%B %d, %Y') if policy.effective_date else 'Immediate' }}</dd>
+                                            
+                                            <dt class="col-sm-4">Last Reviewed</dt>
+                                            <dd class="col-sm-8">{{ policy.review_date.strftime('%B %d, %Y') if policy.review_date else 'Not reviewed' }}</dd>
+                                            
+                                            <dt class="col-sm-4">Next Review</dt>
+                                            <dd class="col-sm-8">{{ policy.next_review_date.strftime('%B %d, %Y') if policy.next_review_date else 'Not scheduled' }}</dd>
+                                            
+                                            <dt class="col-sm-4">Approved By</dt>
+                                            <dd class="col-sm-8">{{ policy.approved_by if policy.approved_by else 'Pending approval' }}</dd>
+                                        </dl>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <h4>Purpose</h4>
+                            <p>{{ policy.purpose }}</p>
+                            
+                            <h4>Scope</h4>
+                            <p>{{ policy.scope }}</p>
+                            
+                            <div class="policy-content">
+                                {{ policy.content|safe }}
+                            </div>
+                            
+                            {% if policy.references %}
+                            <h4>References</h4>
+                            <ul>
+                                {% for reference in policy.references.split('\n') %}
+                                    {% if reference.strip() %}
+                                        <li>{{ reference }}</li>
+                                    {% endif %}
+                                {% endfor %}
+                            </ul>
+                            {% endif %}
+                            
+                            <hr class="my-4">
+                            <h4>Revision History</h4>
+                            <div class="table-responsive">
+                                <table class="table table-sm table-bordered">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Version</th>
+                                            <th>Date</th>
+                                            <th>Modified By</th>
+                                            <th>Description</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% if policy_versions %}
+                                            {% for version in policy_versions %}
+                                            <tr>
+                                                <td>{{ version.version }}</td>
+                                                <td>{{ version.created_at.strftime('%Y-%m-%d') }}</td>
+                                                <td>{{ version.created_by_user.username if version.created_by_user else 'System' }}</td>
+                                                <td>{{ version.change_description if version.change_description else 'Initial version' if version.version == '1.0' else 'Updated' }}</td>
+                                            </tr>
+                                            {% endfor %}
+                                        {% else %}
+                                            <tr>
+                                                <td>{{ policy.version }}</td>
+                                                <td>{{ policy.created_at.strftime('%Y-%m-%d') }}</td>
+                                                <td>{{ policy.created_by_user.username if policy.created_by_user else 'System' }}</td>
+                                                <td>{{ 'Initial version' if policy.version == '1.0' else 'Current version' }}</td>
+                                            </tr>
+                                        {% endif %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-lg-3">
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="card-title m-0">In This Document</h5>
+                        </div>
+                        <div class="card-body">
+                            <nav id="tableOfContents" class="small">
+                                <ul class="list-unstyled mb-0">
+                                    <li><a href="#purpose" class="text-decoration-none">Purpose</a></li>
+                                    <li><a href="#scope" class="text-decoration-none">Scope</a></li>
+                                    <li>
+                                        <a href="#policy" class="text-decoration-none">Policy</a>
+                                        <ul class="list-unstyled ms-3">
+                                            <li><a href="#definitions" class="text-decoration-none">Definitions</a></li>
+                                            <li><a href="#responsibilities" class="text-decoration-none">Responsibilities</a></li>
+                                            <li><a href="#procedures" class="text-decoration-none">Procedures</a></li>
+                                        </ul>
+                                    </li>
+                                    {% if policy.references %}
+                                    <li><a href="#references" class="text-decoration-none">References</a></li>
+                                    {% endif %}
+                                    <li><a href="#revisions" class="text-decoration-none">Revision History</a></li>
+                                </ul>
+                            </nav>
+                        </div>
+                    </div>
+                    
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="card-title m-0">Related Policies</h5>
+                        </div>
+                        <div class="card-body">
+                            {% if related_policies %}
+                                <ul class="list-unstyled">
+                                    {% for rel_policy in related_policies %}
+                                    <li class="mb-2">
+                                        <a href="{{ url_for('governance.policy', policy_id=rel_policy.id) }}" class="text-decoration-none">
+                                            {{ rel_policy.title }}
+                                        </a>
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                            {% else %}
+                                <p class="text-muted small mb-0">No related policies found.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title m-0">Document Actions</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-grid gap-2">
+                                <button class="btn btn-outline-success" id="acknowledgeBtn">
+                                    <i class="bi bi-check-circle"></i> Acknowledge Policy
+                                </button>
+                                <button class="btn btn-outline-primary" id="shareBtn">
+                                    <i class="bi bi-share"></i> Share Policy
+                                </button>
+                                <button class="btn btn-outline-secondary" id="versionHistoryBtn">
+                                    <i class="bi bi-clock-history"></i> Version History
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Acknowledge Modal -->
+<div class="modal fade" id="acknowledgeModal" tabindex="-1" aria-labelledby="acknowledgeModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="acknowledgeModalLabel">Acknowledge Policy</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>By acknowledging this policy, you confirm that you have read, understood, and agree to comply with the {{ policy.title }}.</p>
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" id="acknowledgeConfirm">
+                    <label class="form-check-label" for="acknowledgeConfirm">
+                        I acknowledge that I have read and understood this policy.
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-success" id="submitAcknowledgeBtn" disabled>Acknowledge</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Share Modal -->
+<div class="modal fade" id="shareModal" tabindex="-1" aria-labelledby="shareModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="shareModalLabel">Share Policy</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="shareEmail" class="form-label">Email Addresses (comma separated)</label>
+                    <input type="text" class="form-control" id="shareEmail" placeholder="colleague@example.com">
+                </div>
+                <div class="mb-3">
+                    <label for="shareMessage" class="form-label">Optional Message</label>
+                    <textarea class="form-control" id="shareMessage" rows="3"></textarea>
+                </div>
+                <div class="mb-3">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="requestAcknowledgement">
+                        <label class="form-check-label" for="requestAcknowledgement">
+                            Request acknowledgement
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="submitShareBtn">Share</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Version History Modal -->
+<div class="modal fade" id="versionHistoryModal" tabindex="-1" aria-labelledby="versionHistoryModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="versionHistoryModalLabel">Version History</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Version</th>
+                                <th>Date</th>
+                                <th>Modified By</th>
+                                <th>Description</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if policy_versions %}
+                                {% for version in policy_versions %}
+                                <tr>
+                                    <td>{{ version.version }}</td>
+                                    <td>{{ version.created_at.strftime('%Y-%m-%d') }}</td>
+                                    <td>{{ version.created_by_user.username if version.created_by_user else 'System' }}</td>
+                                    <td>{{ version.change_description if version.change_description else 'Initial version' if version.version == '1.0' else 'Updated' }}</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-secondary">View</button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td>{{ policy.version }}</td>
+                                    <td>{{ policy.created_at.strftime('%Y-%m-%d') }}</td>
+                                    <td>{{ policy.created_by_user.username if policy.created_by_user else 'System' }}</td>
+                                    <td>{{ 'Initial version' if policy.version == '1.0' else 'Current version' }}</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-secondary">View</button>
+                                    </td>
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Print functionality
+        document.getElementById('printBtn').addEventListener('click', function() {
+            window.print();
+        });
+        
+        // Export buttons
+        document.getElementById('exportPDF').addEventListener('click', function(e) {
+            e.preventDefault();
+            alert('This would export the policy as a PDF in a real application');
+        });
+        
+        document.getElementById('exportWord').addEventListener('click', function(e) {
+            e.preventDefault();
+            alert('This would export the policy as a Word document in a real application');
+        });
+        
+        document.getElementById('exportText').addEventListener('click', function(e) {
+            e.preventDefault();
+            alert('This would export the policy as a plain text file in a real application');
+        });
+        
+        // Modals
+        const acknowledgeBtn = document.getElementById('acknowledgeBtn');
+        const shareBtn = document.getElementById('shareBtn');
+        const versionHistoryBtn = document.getElementById('versionHistoryBtn');
+        
+        const acknowledgeModal = new bootstrap.Modal(document.getElementById('acknowledgeModal'));
+        const shareModal = new bootstrap.Modal(document.getElementById('shareModal'));
+        const versionHistoryModal = new bootstrap.Modal(document.getElementById('versionHistoryModal'));
+        
+        acknowledgeBtn.addEventListener('click', function() {
+            acknowledgeModal.show();
+        });
+        
+        shareBtn.addEventListener('click', function() {
+            shareModal.show();
+        });
+        
+        versionHistoryBtn.addEventListener('click', function() {
+            versionHistoryModal.show();
+        });
+        
+        // Acknowledge checkbox logic
+        const acknowledgeConfirm = document.getElementById('acknowledgeConfirm');
+        const submitAcknowledgeBtn = document.getElementById('submitAcknowledgeBtn');
+        
+        acknowledgeConfirm.addEventListener('change', function() {
+            submitAcknowledgeBtn.disabled = !this.checked;
+        });
+        
+        submitAcknowledgeBtn.addEventListener('click', function() {
+            alert('Acknowledgement recorded in a real application');
+            acknowledgeModal.hide();
+        });
+        
+        // Share functionality
+        document.getElementById('submitShareBtn').addEventListener('click', function() {
+            const email = document.getElementById('shareEmail').value;
+            
+            if (!email) {
+                alert('Please enter at least one email address');
+                return;
+            }
+            
+            alert('Policy would be shared in a real application');
+            shareModal.hide();
+        });
+        
+        // Table of contents highlighting
+        const contentLinks = document.querySelectorAll('#tableOfContents a');
+        
+        contentLinks.forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                // In a real application, this would scroll to the section
+                const sectionId = this.getAttribute('href').substring(1);
+                alert(`Would scroll to ${sectionId} section in a real application`);
+                
+                // Update active state
+                contentLinks.forEach(l => l.classList.remove('fw-bold', 'text-primary'));
+                this.classList.add('fw-bold', 'text-primary');
+            });
+        });
+    });
+</script>
+{% endblock %} 

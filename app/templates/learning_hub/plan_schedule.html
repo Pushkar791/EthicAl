@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-lg-10 mx-auto">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('learning_hub.index') }}">Learning Hub</a></li>
+                    <li class="breadcrumb-item active">Plan Schedule</li>
+                </ol>
+            </nav>
+            
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h1 class="h3 mb-0">Plan Your Learning Schedule</h1>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle-fill me-2"></i>
+                        <strong>Tip:</strong> A consistent learning schedule helps you achieve your goals faster. We recommend 30-60 minutes per day for optimal results.
+                    </div>
+                    
+                    <form method="post" action="{{ url_for('learning_hub.plan_schedule') }}">
+                        <div class="row mb-4">
+                            <div class="col-lg-12">
+                                <h5 class="card-title"><i class="bi bi-journal-text me-2"></i>Select Courses</h5>
+                                <div class="card">
+                                    <div class="card-body">
+                                        <div class="row">
+                                            {% for course in courses %}
+                                            <div class="col-md-6 mb-3">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" name="selected_courses" value="{{ course.id }}" id="course_{{ course.id }}">
+                                                    <label class="form-check-label" for="course_{{ course.id }}">
+                                                        <strong>{{ course.title }}</strong>
+                                                        <div class="small text-muted">Estimated time: 10 hours</div>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-4">
+                            <div class="col-lg-12">
+                                <h5 class="card-title"><i class="bi bi-calendar-event me-2"></i>Schedule Parameters</h5>
+                                <div class="card">
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <label for="start_date" class="form-label">Start Date</label>
+                                                <input type="date" class="form-control" id="start_date" name="start_date" required>
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label for="end_date" class="form-label">Target Completion Date</label>
+                                                <input type="date" class="form-control" id="end_date" name="end_date" required>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <label for="days_per_week" class="form-label">Days Per Week</label>
+                                                <select class="form-select" id="days_per_week" name="days_per_week" required>
+                                                    <option value="1">1 day/week</option>
+                                                    <option value="2">2 days/week</option>
+                                                    <option value="3" selected>3 days/week</option>
+                                                    <option value="4">4 days/week</option>
+                                                    <option value="5">5 days/week</option>
+                                                    <option value="6">6 days/week</option>
+                                                    <option value="7">7 days/week</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label for="hours_per_day" class="form-label">Hours Per Day</label>
+                                                <select class="form-select" id="hours_per_day" name="hours_per_day" required>
+                                                    <option value="0.5">30 minutes</option>
+                                                    <option value="1" selected>1 hour</option>
+                                                    <option value="1.5">1.5 hours</option>
+                                                    <option value="2">2 hours</option>
+                                                    <option value="3">3 hours</option>
+                                                    <option value="4">4+ hours</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="row">
+                                            <div class="col-md-12">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" id="reminders" name="reminders" checked>
+                                                    <label class="form-check-label" for="reminders">
+                                                        Send me reminders about my learning schedule
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-4">
+                            <div class="col-lg-12">
+                                <h5 class="card-title"><i class="bi bi-flag me-2"></i>Learning Goals</h5>
+                                <div class="card">
+                                    <div class="card-body">
+                                        <div class="mb-3">
+                                            <label for="goals" class="form-label">What do you hope to achieve with this learning plan?</label>
+                                            <textarea class="form-control" id="goals" name="goals" rows="3" placeholder="I want to understand AI ethics to implement in my company's projects..."></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{{ url_for('learning_hub.index') }}" class="btn btn-outline-secondary">Cancel</a>
+                            <button type="submit" class="btn btn-primary">Create Learning Plan</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Preview Modal -->
+<div class="modal fade" id="previewModal" tabindex="-1" aria-labelledby="previewModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="previewModalLabel">Schedule Preview</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="calendar"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Set default dates
+        const today = new Date();
+        const nextMonth = new Date(today);
+        nextMonth.setMonth(today.getMonth() + 1);
+        
+        document.getElementById('start_date').valueAsDate = today;
+        document.getElementById('end_date').valueAsDate = nextMonth;
+    });
+</script>
+{% endblock %} 

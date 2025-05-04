@@ -1,0 +1,340 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-lg-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('governance.index') }}">Governance</a></li>
+                    <li class="breadcrumb-item active">Compliance Frameworks</li>
+                </ol>
+            </nav>
+            
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h2 mb-0">Compliance Frameworks</h1>
+                <a href="#" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addFrameworkModal">
+                    <i class="bi bi-plus-circle me-1"></i> Add Framework
+                </a>
+            </div>
+            
+            <div class="card mb-4">
+                <div class="card-body">
+                    <p class="text-muted">Compliance frameworks provide standardized requirements for AI governance. Apply these frameworks to your AI models to track compliance status.</p>
+                </div>
+            </div>
+            
+            <div class="row">
+                {% if frameworks %}
+                    {% for framework in frameworks %}
+                    <div class="col-lg-4 mb-4">
+                        <div class="card h-100">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5 class="card-title m-0">{{ framework.name }}</h5>
+                                <span class="badge bg-primary">{{ framework.requirements|length }} Requirements</span>
+                            </div>
+                            <div class="card-body">
+                                <p class="card-text">{{ framework.description }}</p>
+                                
+                                <div class="mb-3">
+                                    <strong>Sector:</strong> {{ framework.sector or 'Cross-Industry' }}
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <strong>Key Focus Areas:</strong>
+                                    <div class="d-flex flex-wrap gap-1 mt-1">
+                                        {% for category in framework.categories.split(',') %}
+                                            <span class="badge bg-light text-dark">{{ category.strip() }}</span>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                
+                                <a href="{{ url_for('governance.compliance_framework', framework_id=framework.id) }}" class="btn btn-outline-primary w-100">
+                                    <i class="bi bi-eye"></i> View Framework
+                                </a>
+                            </div>
+                            <div class="card-footer bg-transparent">
+                                <small class="text-muted">
+                                    Last updated: {{ framework.updated_at.strftime('%Y-%m-%d') if framework.updated_at else framework.created_at.strftime('%Y-%m-%d') }}
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-body text-center py-5">
+                            <i class="bi bi-shield display-1 text-muted"></i>
+                            <h5 class="mt-3">No compliance frameworks available</h5>
+                            <p class="text-muted">Start by adding your first compliance framework.</p>
+                            <button class="btn btn-primary mt-2" data-bs-toggle="modal" data-bs-target="#addFrameworkModal">
+                                <i class="bi bi-plus-circle me-1"></i> Add Framework
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            
+            <div class="mt-4">
+                <h3 class="h4 mb-3">Predefined Frameworks</h3>
+                <div class="row">
+                    <div class="col-lg-4 mb-4">
+                        <div class="card h-100 border-primary">
+                            <div class="card-header bg-primary text-white">
+                                <h5 class="card-title m-0">EU AI Act Framework</h5>
+                            </div>
+                            <div class="card-body">
+                                <p class="card-text">A comprehensive framework based on the European Union's AI Act requirements for high-risk AI systems.</p>
+                                
+                                <div class="mb-3">
+                                    <strong>Sector:</strong> Cross-Industry
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <strong>Key Focus Areas:</strong>
+                                    <div class="d-flex flex-wrap gap-1 mt-1">
+                                        <span class="badge bg-light text-dark">Risk Management</span>
+                                        <span class="badge bg-light text-dark">Data Governance</span>
+                                        <span class="badge bg-light text-dark">Transparency</span>
+                                        <span class="badge bg-light text-dark">Human Oversight</span>
+                                    </div>
+                                </div>
+                                
+                                <button class="btn btn-outline-primary w-100" id="importEuAiActBtn">
+                                    <i class="bi bi-download"></i> Import Framework
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-lg-4 mb-4">
+                        <div class="card h-100 border-primary">
+                            <div class="card-header bg-primary text-white">
+                                <h5 class="card-title m-0">NIST AI RMF</h5>
+                            </div>
+                            <div class="card-body">
+                                <p class="card-text">Based on the National Institute of Standards and Technology AI Risk Management Framework.</p>
+                                
+                                <div class="mb-3">
+                                    <strong>Sector:</strong> Cross-Industry
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <strong>Key Focus Areas:</strong>
+                                    <div class="d-flex flex-wrap gap-1 mt-1">
+                                        <span class="badge bg-light text-dark">Govern</span>
+                                        <span class="badge bg-light text-dark">Map</span>
+                                        <span class="badge bg-light text-dark">Measure</span>
+                                        <span class="badge bg-light text-dark">Manage</span>
+                                    </div>
+                                </div>
+                                
+                                <button class="btn btn-outline-primary w-100" id="importNistBtn">
+                                    <i class="bi bi-download"></i> Import Framework
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-lg-4 mb-4">
+                        <div class="card h-100 border-primary">
+                            <div class="card-header bg-primary text-white">
+                                <h5 class="card-title m-0">AI Ethics Principles</h5>
+                            </div>
+                            <div class="card-body">
+                                <p class="card-text">A framework of ethical principles for responsible AI development and deployment.</p>
+                                
+                                <div class="mb-3">
+                                    <strong>Sector:</strong> Cross-Industry
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <strong>Key Focus Areas:</strong>
+                                    <div class="d-flex flex-wrap gap-1 mt-1">
+                                        <span class="badge bg-light text-dark">Fairness</span>
+                                        <span class="badge bg-light text-dark">Transparency</span>
+                                        <span class="badge bg-light text-dark">Privacy</span>
+                                        <span class="badge bg-light text-dark">Safety</span>
+                                        <span class="badge bg-light text-dark">Accountability</span>
+                                    </div>
+                                </div>
+                                
+                                <button class="btn btn-outline-primary w-100" id="importEthicsBtn">
+                                    <i class="bi bi-download"></i> Import Framework
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Framework Modal -->
+<div class="modal fade" id="addFrameworkModal" tabindex="-1" aria-labelledby="addFrameworkModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addFrameworkModalLabel">Add Compliance Framework</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addFrameworkForm" method="post" action="#">
+                    <div class="mb-3">
+                        <label for="frameworkName" class="form-label">Framework Name <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="frameworkName" name="name" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="frameworkDescription" class="form-label">Description <span class="text-danger">*</span></label>
+                        <textarea class="form-control" id="frameworkDescription" name="description" rows="3" required></textarea>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="frameworkSector" class="form-label">Sector</label>
+                            <input type="text" class="form-control" id="frameworkSector" name="sector" placeholder="e.g., Healthcare, Finance, Cross-Industry">
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="frameworkVersion" class="form-label">Version</label>
+                            <input type="text" class="form-control" id="frameworkVersion" name="version" placeholder="e.g., 1.0">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="frameworkCategories" class="form-label">Categories (comma-separated)</label>
+                        <input type="text" class="form-control" id="frameworkCategories" name="categories" placeholder="e.g., Risk Management, Data Governance, Transparency">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Initial Requirements</label>
+                        <div id="requirementsContainer">
+                            <div class="requirement-item card mb-2">
+                                <div class="card-body">
+                                    <div class="mb-2">
+                                        <label class="form-label">Requirement Title <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control requirement-title" name="requirement_titles[]" required>
+                                    </div>
+                                    
+                                    <div class="mb-2">
+                                        <label class="form-label">Description</label>
+                                        <textarea class="form-control requirement-description" name="requirement_descriptions[]" rows="2"></textarea>
+                                    </div>
+                                    
+                                    <div class="row">
+                                        <div class="col-md-6 mb-2">
+                                            <label class="form-label">Category</label>
+                                            <input type="text" class="form-control requirement-category" name="requirement_categories[]">
+                                        </div>
+                                        
+                                        <div class="col-md-6 mb-2">
+                                            <label class="form-label">Priority</label>
+                                            <select class="form-select requirement-priority" name="requirement_priorities[]">
+                                                <option value="high">High</option>
+                                                <option value="medium" selected>Medium</option>
+                                                <option value="low">Low</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <button type="button" class="btn btn-outline-primary mt-2" id="addRequirementBtn">
+                            <i class="bi bi-plus-circle"></i> Add Requirement
+                        </button>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="saveFrameworkBtn">Add Framework</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add requirement button
+        document.getElementById('addRequirementBtn').addEventListener('click', function() {
+            const requirementsContainer = document.getElementById('requirementsContainer');
+            const requirementTemplate = document.querySelector('.requirement-item').cloneNode(true);
+            
+            // Clear form values
+            requirementTemplate.querySelectorAll('input, textarea, select').forEach(input => {
+                input.value = input.tagName === 'SELECT' ? 'medium' : '';
+            });
+            
+            // Add remove button if this is not the first requirement
+            if (requirementsContainer.children.length > 0) {
+                const removeBtn = document.createElement('button');
+                removeBtn.type = 'button';
+                removeBtn.className = 'btn btn-sm btn-outline-danger position-absolute top-0 end-0 m-2 remove-requirement';
+                removeBtn.innerHTML = '<i class="bi bi-trash"></i>';
+                removeBtn.addEventListener('click', function() {
+                    this.closest('.requirement-item').remove();
+                });
+                
+                requirementTemplate.querySelector('.card-body').appendChild(removeBtn);
+            }
+            
+            requirementsContainer.appendChild(requirementTemplate);
+        });
+        
+        // Save framework button
+        document.getElementById('saveFrameworkBtn').addEventListener('click', function() {
+            const form = document.getElementById('addFrameworkForm');
+            
+            // Simple validation
+            const requiredFields = form.querySelectorAll('[required]');
+            let isValid = true;
+            
+            requiredFields.forEach(field => {
+                if (!field.value.trim()) {
+                    field.classList.add('is-invalid');
+                    isValid = false;
+                } else {
+                    field.classList.remove('is-invalid');
+                }
+            });
+            
+            if (isValid) {
+                // In a real application, you would submit the form
+                // form.submit();
+                
+                // For this demo, we'll just close the modal
+                alert('Framework would be saved in a real application');
+                bootstrap.Modal.getInstance(document.getElementById('addFrameworkModal')).hide();
+            } else {
+                alert('Please fill in all required fields');
+            }
+        });
+        
+        // Import predefined frameworks
+        document.getElementById('importEuAiActBtn').addEventListener('click', function() {
+            if (confirm('Import the EU AI Act Framework? This will add a new framework with predefined requirements.')) {
+                alert('EU AI Act Framework would be imported in a real application');
+            }
+        });
+        
+        document.getElementById('importNistBtn').addEventListener('click', function() {
+            if (confirm('Import the NIST AI RMF Framework? This will add a new framework with predefined requirements.')) {
+                alert('NIST AI RMF Framework would be imported in a real application');
+            }
+        });
+        
+        document.getElementById('importEthicsBtn').addEventListener('click', function() {
+            if (confirm('Import the AI Ethics Principles Framework? This will add a new framework with predefined requirements.')) {
+                alert('AI Ethics Principles Framework would be imported in a real application');
+            }
+        });
+    });
+</script>
+{% endblock %} 
